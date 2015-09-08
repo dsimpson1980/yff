@@ -39,10 +39,13 @@ def main(keyfile=None):
                 WHERE league_key='%s'
                   AND week=1""" % league_key
     data_yql = y3.execute(query, token=token)
-    data = pd.DataFrame(data_yql.rows[0]['roster']['players']['player'])
-    filtered_data = map(lambda x: (x[1]['selected_position']['position'], x[1]['name']['full']), data[['name', 'selected_position']].iterrows())
-    for position, name in filtered_data:
-        print position, name
+    all_data = {}
+    for row in data_yql.rows:
+        data = pd.DataFrame(row['roster']['players']['player'])
+        filtered_data = map(lambda x: x['full'], data['name'])
+        all_data[row['name']] = filtered_data
+    idx = map(lambda x: x['position'], data['selected_position'])
+    print pd.DataFrame(all_data, index=idx)
 
 if __name__ == '__main__':
     main()
