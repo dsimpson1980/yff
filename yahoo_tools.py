@@ -4,6 +4,10 @@ from yql.storage import FileTokenStore
 import os
 
 def main(keyfile=None):
+    load_players(keyfile)
+
+
+def load_players(keyfile=None):
     if keyfile == None:
         keyfile = 'data'
     f = open(keyfile, "r")
@@ -45,7 +49,7 @@ def main(keyfile=None):
         filtered_data = map(lambda x: x['full'], data['name'])
         all_data[row['name']] = filtered_data
     idx = map(lambda x: x['position'], data['selected_position'])
-    print pd.DataFrame(all_data, index=idx)
+    return pd.DataFrame(all_data, index=idx)
 
 if __name__ == '__main__':
     main()
