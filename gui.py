@@ -20,7 +20,7 @@ class DataFrameTableView(QtGui.QTableView):
         DataFrameTableView
         """
         QtGui.QTableView.__init__(self)
-        self.resize(500, 500)
+        self.resize(1000, 500)
         if df is not None:
             self.set_dataframe(df)
 
@@ -216,46 +216,6 @@ class PandasViewer(QtGui.QMainWindow):
         from yahoo_tools import load_players
         df = load_players()
         self.dataframe_changed(df)
-
-    def change_freq(self, freq):
-        """Resample the original pd.DataFrame to frequency freq
-
-        Parameters
-        ----------
-        freq: str
-            The frequency to resample the dataframe to
-        """
-        self.freq = freq
-        for action in self.freq_submenu.actions():
-            action.setChecked(action.text() == freq)
-        if self.df is not None:
-            self.dataframe_changed(self.df)
-
-    def change_agg(self, how):
-        """Change the method of aggregation/resample
-
-        Parameters
-        ----------
-        how: str
-            The method to use for resample parameter how
-        """
-        self.agg = how
-        for action in self.agg_submenu.actions():
-            action.setChecked(action.text() == how)
-        if self.df is not None:
-            self.dataframe_changed(self.df)
-
-    def change_legend(self):
-        """Set the visibility of the subplot legend to match the checked status
-        of the submenu item.  The submenu item is checkable and as such changes
-        state automatically when clicked
-        """
-        self.df_plot_viewer.legend.set_visible(self.legend_action.isChecked())
-        self.df_plot_viewer.draw()
-
-    def change_strip_zeros(self):
-        """Strip the zeros from the displayed data"""
-        self.dataframe_changed(self.df)
 
     def reset_all(self):
         [action.setChecked(False) for action in self.freq_submenu.actions()]
