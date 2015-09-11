@@ -7,7 +7,7 @@ def main(keyfile=None):
     load_players(keyfile)
 
 
-def load_players(keyfile=None):
+def load_players(keyfile=None, week=1):
     if keyfile == None:
         keyfile = 'data'
     f = open(keyfile, "r")
@@ -41,7 +41,7 @@ def load_players(keyfile=None):
     query = """SELECT *
                  FROM fantasysports.teams.roster
                 WHERE league_key='%s'
-                  AND week=1""" % league_key
+                  AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
     all_data = {}
     for row in data_yql.rows:
@@ -49,6 +49,15 @@ def load_players(keyfile=None):
         filtered_data = map(lambda x: x['full'], data['name'])
         all_data[row['name']] = filtered_data
     idx = map(lambda x: x['position'], data['selected_position'])
+    for team in xrange(1, 13):
+        query = """SELECT *
+                     FROM fantasysports.teams.roster.stats
+                    WHERE team_key='%s.t.%s'
+                      AND week=%s""" % (league_key, team, week)
+        data_yql = y3.execute(query, token=token)
+        points = map(lambda x: float(x['player_points']['total']),
+                     data_yql.rows[0]['roster']['players']['player'])
+        print points
     return pd.DataFrame(all_data, index=idx)
 
 if __name__ == '__main__':
