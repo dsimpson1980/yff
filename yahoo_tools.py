@@ -8,7 +8,7 @@ def main(keyfile=None):
     load_players(keyfile)
 
 
-def load_players(keyfile=None, week=1, raw=False, dialog=False):
+def load_players(keyfile=None, week=1, dialog=False):
     if keyfile == None:
         keyfile = 'data'
     f = open(keyfile, "r")
@@ -47,22 +47,7 @@ def load_players(keyfile=None, week=1, raw=False, dialog=False):
                 WHERE league_key='%s'
                   AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
-    all_data = {}
-
-    def get_name(x):
-        if x['last'] == None:
-            return x['first']
-        else:
-            return x['first'][0] + '.' + x['last']
-    if raw:
-        # return data_yql.rows
-        return {row['name']: row for row in data_yql.rows}
-    for row in data_yql.rows:
-        data = pd.DataFrame(row['roster']['players']['player'])
-        filtered_data = map(get_name, data['name'])
-        all_data[row['name']] = filtered_data
-    idx = map(lambda x: x['position'], data['selected_position'])
-    return pd.DataFrame(all_data, index=idx)
+    return {row['name']: row for row in data_yql.rows}
 
 if __name__ == '__main__':
     main()

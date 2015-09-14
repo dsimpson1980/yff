@@ -208,12 +208,9 @@ class PandasViewer(QtGui.QMainWindow):
         """
         QtGui.QMainWindow.__init__(self)
         if not obj:
-            obj = load_players('data', raw=True, dialog=self.enter_token)
+            obj = load_players('data', dialog=self.enter_token)
         if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
             obj = {str(type(obj)): obj}
-        self.freq = None
-        self.agg = None
-        self.filepath = None
         self.df = pd.DataFrame()
         self.displayed_df = pd.DataFrame()
         window = QtGui.QWidget()
@@ -268,15 +265,21 @@ class PandasViewer(QtGui.QMainWindow):
         return action
 
     def load_players(self):
-        df = load_players(dialog=self.enter_token)
+        def get_name(x):
+            if x['last'] == None:
+                return x['first']
+            else:
+                return x['first'][0] + '.' + x['last']
+        all_data = {}
+        for name, row in self.obj.iteritems():
+            data = pd.DataFrame(row['roster']['players']['player'])
+            filtered_data = map(get_name, data['name'])
+            all_data[name] = filtered_data
+        idx = map(lambda x: x['position'], data['selected_position'])
+        df = pd.DataFrame(all_data, index=idx)
         self.dataframe_changed(df)
 
     def reset_all(self):
-        [action.setChecked(False) for action in self.freq_submenu.actions()]
-        [action.setChecked(False) for action in self.agg_submenu.actions()]
-        self.legend_action.setChecked(True)
-        self.freq = None
-        self.agg = None
         self.df = pd.DataFrame()
         self.displayed_df = pd.DataFrame()
 
