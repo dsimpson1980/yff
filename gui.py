@@ -280,7 +280,8 @@ class PandasViewer(QtGui.QMainWindow):
         self.displayed_df = pd.DataFrame()
 
     def enter_token(self, auth_url):
-        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', auth_url)
+        link = '''<a href='%s'>%s</a>''' % (auth_url, auth_url)
+        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', link)
         return str(verifier) if ok else None
 
 
