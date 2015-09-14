@@ -1,8 +1,6 @@
-import pandas as pd
 import yql
 from yql.storage import FileTokenStore
 import os
-from PySide import QtGui
 
 def main(keyfile=None):
     load_players(keyfile)
