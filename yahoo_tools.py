@@ -44,26 +44,32 @@ def load_players(keyfile=None, week=1):
                   AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
     all_data = {}
+
+    def get_name(x):
+        if x['last'] == None:
+            return x['first']
+        else:
+            return x['first'][0] + '.' + x['last']
     for row in data_yql.rows:
         data = pd.DataFrame(row['roster']['players']['player'])
-        filtered_data = map(lambda x: x['full'], data['name'])
+        filtered_data = map(get_name, data['name'])
         all_data[row['name']] = filtered_data
     idx = map(lambda x: x['position'], data['selected_position'])
-    player_id = lambda x: int(x['player_id'])
-    points = lambda x: float(x['player_points']['total'])
-    bye_week = lambda x: int(x['bye_weeks']['week'])
-    name = lambda x: x['name']['full']
-    stats = []
-    for team in xrange(1, 13):
-        query = """SELECT *
-                     FROM fantasysports.teams.roster.stats
-                    WHERE team_key='%s.t.%s'
-                      AND week=%s""" % (league_key, team, week)
-        data_yql = y3.execute(query, token=token)
-        data = data_yql.rows[0]['roster']['players']['player']
-        stats.append(dict(map(lambda x: (player_id(x), dict(
-            points=points(x), name=name(x), bye_week=bye_week(x))), data)))
-    print stats
+    # player_id = lambda x: int(x['player_id'])
+    # points = lambda x: float(x['player_points']['total'])
+    # bye_week = lambda x: int(x['bye_weeks']['week'])
+    # name = lambda x: x['name']['full']
+    # stats = []
+    # for team in xrange(1, 13):
+    #     query = """SELECT *
+    #                  FROM fantasysports.teams.roster.stats
+    #                 WHERE team_key='%s.t.%s'
+    #                   AND week=%s""" % (league_key, team, week)
+    #     data_yql = y3.execute(query, token=token)
+    #     data = data_yql.rows[0]['roster']['players']['player']
+    #     stats.append(dict(map(lambda x: (player_id(x), dict(
+    #         points=points(x), name=name(x), bye_week=bye_week(x))), data)))
+    # print stats
     return pd.DataFrame(all_data, index=idx)
 
 if __name__ == '__main__':
