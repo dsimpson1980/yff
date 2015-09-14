@@ -1,8 +1,52 @@
 from PySide import QtGui, QtCore
-import os
 import sys
 import pandas as pd
-import numpy as np
+
+from yahoo_tools import load_players
+
+
+class TreeWidgetItem(QtGui.QTreeWidgetItem):
+    def __init__(self, *args):
+        self.keys = args
+        non_none_keys = [k for k in args if k is not None]
+        key = [] if len(non_none_keys) == 0 else [str(non_none_keys[-1])]
+        QtGui.QTreeWidgetItem.__init__(self, key)
+
+
+class TreeWidget(QtGui.QTreeWidget):
+    selection_made = QtCore.Signal((pd.DataFrame, ))
+
+    def __init__(self, parent=None, obj=None):
+        QtGui.QTreeWidget.__init__(self, parent)
+        self.setVerticalScrollMode(self.ScrollPerPixel)
+        self.setColumnCount(1)
+        self.setHeaderLabels(['Pandas Variables'])
+        self.set_tree(obj)
+        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+
+    def set_tree(self, obj):
+        self.clear()
+        self.obj = obj
+        root = self.invisibleRootItem()
+        self.create_branch(root, obj)
+
+    def create_branch(self, root, obj):
+        if isinstance(obj, dict):
+            for key, value in obj.iteritems():
+                twig = TreeWidgetItem(key)
+                root.addChild(twig)
+                self.create_branch(twig, value)
+        elif isinstance(obj, list):
+            for n, value in enumerate(obj):
+                twig = TreeWidgetItem(n)
+                root.addChild(twig)
+                self.create_branch(twig, value)
+        else:
+            leaf = TreeWidgetItem(obj)
+            root.addChild(leaf)
+
+    def selectionChanged(self, selected, deselected):
+        pass
 
 
 class DataFrameTableView(QtGui.QTableView):
@@ -176,6 +220,9 @@ class PandasViewer(QtGui.QMainWindow):
         left_panel.setLayout(left_layout)
         splitter.addWidget(left_panel)
         self.obj = obj
+        self.tree_widget = TreeWidget(self, obj=obj)
+        self.tree_widget.selection_made.connect(self.dataframe_changed)
+        left_layout.addWidget(self.tree_widget)
         self.df_viewer = DataFrameTableView(None)
         left_layout.addWidget(self.df_viewer)
         self.load_players()
@@ -213,7 +260,6 @@ class PandasViewer(QtGui.QMainWindow):
         return action
 
     def load_players(self):
-        from yahoo_tools import load_players
         df = load_players()
         self.dataframe_changed(df)
 
@@ -230,7 +276,12 @@ class PandasViewer(QtGui.QMainWindow):
 def main():
     """Main method for the app"""
     app = QtGui.QApplication(sys.argv)
-    pandas_viewer = PandasViewer()
+    d = {'toplevel%s' % x:
+             {'middlelevel%s' % y:
+                  {'bottomlevel%s' % z: z
+                   for z in range(3)} for y in range(4)} for x in range(5)}
+    d = load_players('data', raw=True)
+    pandas_viewer = PandasViewer(d)
     pandas_viewer.show()
     app.exec_()
 
