@@ -230,8 +230,8 @@ class PandasViewer(QtGui.QMainWindow):
         left_layout.addWidget(self.tree_widget)
         self.df_viewer = DataFrameTableView(None)
         left_layout.addWidget(self.df_viewer)
-        self.load_players()
         self.init_menu()
+        self.load_players()
 
     def dataframe_changed(self, df):
         """Set the dataframe in the dataframe viewer to df
@@ -254,6 +254,28 @@ class PandasViewer(QtGui.QMainWindow):
             'Refresh', action_menu, shortcut=QtGui.QKeySequence.Refresh)
         self.refresh.triggered.connect(self.load_players)
         action_menu.addAction(self.refresh)
+        self.roster_menu = QtGui.QMenu('Roster')
+        menubar.addMenu(self.roster_menu)
+        self.roster_mapper = QtCore.QSignalMapper(self)
+        for how, key in [('Full name', 'F'), ('Initial', 'I')]:
+            action = QtGui.QAction(
+                how, self, checkable=True,
+                shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % key))
+            self.roster_mapper.setMapping(action, how)
+            action.triggered.connect(self.roster_mapper.map)
+            self.roster_menu.addAction(action)
+        self.roster = 'Initial'
+        for action in self.roster_menu.actions():
+            action.setChecked(action.text() == self.roster)
+        self.roster_mapper.mapped['QString'].connect(self.change_roster_menu)
+
+    def change_roster_menu(self, how):
+        self.roster = how
+        for action in self.roster_menu.actions():
+            action.setChecked(action.text() == how)
+        if self.df is not None:
+            # self.dataframe_changed(self.df)
+            self.load_players()
 
     @staticmethod
     def action(*args, **kwargs):
@@ -264,11 +286,15 @@ class PandasViewer(QtGui.QMainWindow):
         return action
 
     def load_players(self):
-        def get_name(x):
+        def get_name_initial(x):
             if x['last'] == None:
                 return x['first']
             else:
                 return x['first'][0] + '.' + x['last']
+
+        def get_name_full(x):
+            return x['full']
+        get_name = get_name_full if self.roster == 'Full name' else get_name_initial
         all_data = {}
         for name, row in self.obj.iteritems():
             data = pd.DataFrame(row['roster']['players']['player'])
