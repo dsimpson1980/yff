@@ -9,6 +9,8 @@ def main(keyfile=None):
 
 
 def load_players(keyfile=None, week=1, dialog=False):
+    #ToDo Need to add dialog/popup to add initial consumer_key and secret
+    #ToDo data file should be encrypted in some manner on the local machine
     if keyfile == None:
         keyfile = 'data'
     f = open(keyfile, "r")
