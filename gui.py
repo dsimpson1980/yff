@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 
 from yahoo_tools import load_players
+import webbrowser
 
 
 class EnterCode(QtGui.QWidget):
@@ -280,8 +281,9 @@ class PandasViewer(QtGui.QMainWindow):
         self.displayed_df = pd.DataFrame()
 
     def enter_token(self, auth_url):
-        link = '''<a href='%s'>%s</a>''' % (auth_url, auth_url)
-        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', link)
+        text = '''<a href='%s'>%s</a> Enter Code:''' % (auth_url, auth_url)
+        webbrowser.open(auth_url)
+        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', text)
         return str(verifier) if ok else None
 
 
