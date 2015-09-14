@@ -257,7 +257,7 @@ class PandasViewer(QtGui.QMainWindow):
         self.roster_menu = QtGui.QMenu('Roster')
         menubar.addMenu(self.roster_menu)
         self.roster_mapper = QtCore.QSignalMapper(self)
-        for how, key in [('Full name', 'F'), ('Initial', 'I')]:
+        for how, key in [('Full Name', 'F'), ('Initial', 'I'), ('Bye Week', 'B')]:
             action = QtGui.QAction(
                 how, self, checkable=True,
                 shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % key))
@@ -287,20 +287,23 @@ class PandasViewer(QtGui.QMainWindow):
 
     def load_players(self):
         def get_name_initial(x):
-            if x['last'] == None:
-                return x['first']
+            if x['name']['last'] == None:
+                return x['name']['first']
             else:
-                return x['first'][0] + '.' + x['last']
+                return x['name']['first'][0] + '.' + x['name']['last']
 
         def get_name_full(x):
-            return x['full']
-        get_name = get_name_full if self.roster == 'Full name' else get_name_initial
+            return x['name']['full']
+
+        def get_bye_week(x):
+            return x['bye_weeks']['week']
+        mapper = {'Full Name': get_name_full, 'Initial': get_name_initial, 'Bye Week': get_bye_week}
         all_data = {}
         for name, row in self.obj.iteritems():
-            data = pd.DataFrame(row['roster']['players']['player'])
-            filtered_data = map(get_name, data['name'])
+            data = row['roster']['players']['player']
+            filtered_data = map(mapper[self.roster], data)
             all_data[name] = filtered_data
-        idx = map(lambda x: x['position'], data['selected_position'])
+        idx = map(lambda x: x['selected_position']['position'], data)
         df = pd.DataFrame(all_data, index=idx)
         self.dataframe_changed(df)
 
