@@ -242,8 +242,7 @@ class PandasViewer(QtGui.QMainWindow):
             The dataframe to set
         """
         self.df = df
-        self.displayed_df = self.df if self.freq is None else self.df.resample(
-            self.freq, how=self.agg)
+        self.displayed_df = self.df
         self.df_viewer.set_dataframe(self.displayed_df)
 
     def init_menu(self):
