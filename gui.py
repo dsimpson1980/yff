@@ -5,6 +5,11 @@ import pandas as pd
 from yahoo_tools import load_players
 
 
+class EnterCode(QtGui.QWidget):
+    def __init__(self, auth_url):
+        QtGui.QWidget.__init__(self)
+        self.auth_url = auth_url
+
 class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, *args):
         self.keys = args
@@ -200,8 +205,9 @@ class PandasViewer(QtGui.QMainWindow):
         # >>> PandasViewer(dataframe) #doctest: +ELLIPSIS
         <viewer_gui.PandasViewer object at ...>
         """
-        if not obj: obj = {}
         QtGui.QMainWindow.__init__(self)
+        if not obj:
+            obj = load_players('data', raw=True, dialog=self.enter_token)
         if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
             obj = {str(type(obj)): obj}
         self.freq = None
@@ -228,7 +234,6 @@ class PandasViewer(QtGui.QMainWindow):
         left_layout.addWidget(self.df_viewer)
         self.load_players()
         self.init_menu()
-        self.enter_token()
 
     def dataframe_changed(self, df):
         """Set the dataframe in the dataframe viewer to df
@@ -262,7 +267,7 @@ class PandasViewer(QtGui.QMainWindow):
         return action
 
     def load_players(self):
-        df = load_players()
+        df = load_players(dialog=self.enter_token)
         self.dataframe_changed(df)
 
     def reset_all(self):
@@ -274,16 +279,15 @@ class PandasViewer(QtGui.QMainWindow):
         self.df = pd.DataFrame()
         self.displayed_df = pd.DataFrame()
 
+    def enter_token(self, auth_url):
+        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', auth_url)
+        return str(verifier) if ok else None
+
 
 def main():
     """Main method for the app"""
     app = QtGui.QApplication(sys.argv)
-    d = {'toplevel%s' % x:
-             {'middlelevel%s' % y:
-                  {'bottomlevel%s' % z: z
-                   for z in range(3)} for y in range(4)} for x in range(5)}
-    d = load_players('data', raw=True)
-    pandas_viewer = PandasViewer(d)
+    pandas_viewer = PandasViewer()
     pandas_viewer.show()
     app.exec_()
 

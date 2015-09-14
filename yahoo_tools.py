@@ -2,12 +2,13 @@ import pandas as pd
 import yql
 from yql.storage import FileTokenStore
 import os
+from PySide import QtGui
 
 def main(keyfile=None):
     load_players(keyfile)
 
 
-def load_players(keyfile=None, week=1, raw=False):
+def load_players(keyfile=None, week=1, raw=False, dialog=False):
     if keyfile == None:
         keyfile = 'data'
     f = open(keyfile, "r")
@@ -28,8 +29,11 @@ def load_players(keyfile=None, week=1, raw=False):
     if not stored_token:
         # Do the dance
         request_token, auth_url = y3.get_token_and_auth_url()
-        print "Visit url %s and get a verifier string" % auth_url
-        verifier = raw_input("Enter the code: ")
+        if dialog:
+            verifier = dialog(auth_url)
+        else:
+            print "Visit url %s and get a verifier string" % auth_url
+            verifier = raw_input("Enter the code: ")
         token = y3.get_access_token(request_token, verifier)
         token_store.set('foo', token)
     else:
