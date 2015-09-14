@@ -20,7 +20,7 @@ class TreeWidget(QtGui.QTreeWidget):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setColumnCount(1)
-        self.setHeaderLabels()
+        self.setHeaderLabels([])
         self.header().close()
         self.set_tree(obj)
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -228,6 +228,7 @@ class PandasViewer(QtGui.QMainWindow):
         left_layout.addWidget(self.df_viewer)
         self.load_players()
         self.init_menu()
+        self.enter_token()
 
     def dataframe_changed(self, df):
         """Set the dataframe in the dataframe viewer to df
