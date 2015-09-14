@@ -20,7 +20,8 @@ class TreeWidget(QtGui.QTreeWidget):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setColumnCount(1)
-        self.setHeaderLabels(['Pandas Variables'])
+        self.setHeaderLabels()
+        self.header().close()
         self.set_tree(obj)
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
