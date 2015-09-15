@@ -6,7 +6,7 @@ def main(keyfile=None):
     load_players(keyfile)
 
 
-def load_players(keyfile=None, week=1, dialog=False):
+def load_players(keyfile=None, week=1, dialog=False, stats=False):
     #ToDo Need to add dialog/popup to add initial consumer_key and secret
     #ToDo data file should be encrypted in some manner on the local machine
     if keyfile == None:
@@ -47,7 +47,18 @@ def load_players(keyfile=None, week=1, dialog=False):
                 WHERE league_key='%s'
                   AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
-    return {row['name']: row for row in data_yql.rows}
+    data = {row['name']: row for row in data_yql.rows}
+    for team in range(1, 13):
+        query = """SELECT name, roster.players.player
+                     FROM fantasysports.teams.roster.stats
+                    WHERE team_key='%s.t.%s'
+                      AND week=%s""" % (league_key, team, week)
+        data_yql = y3.execute(query, token=token).rows
+        name = data_yql[0]['name']
+        for n, player in enumerate(data[name]['roster']['players']['player']):
+            for k in ['player_stats', 'player_points']:
+                player[k] = data_yql[n]['roster']['players']['player'][k]
+    return data
 
 if __name__ == '__main__':
     main()
