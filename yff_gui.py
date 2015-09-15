@@ -257,7 +257,8 @@ class PandasViewer(QtGui.QMainWindow):
         self.roster_menu = QtGui.QMenu('Roster')
         menubar.addMenu(self.roster_menu)
         self.roster_mapper = QtCore.QSignalMapper(self)
-        for how, key in [('Full Name', 'F'), ('Initial', 'I'), ('Bye Week', 'B')]:
+        for how, key in [('Full Name', 'F'), ('Initial', 'I'),
+                         ('Bye Week', 'B'), ('Player Points', 'P')]:
             action = QtGui.QAction(
                 how, self, checkable=True,
                 shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % key))
@@ -297,7 +298,11 @@ class PandasViewer(QtGui.QMainWindow):
 
         def get_bye_week(x):
             return x['bye_weeks']['week']
-        mapper = {'Full Name': get_name_full, 'Initial': get_name_initial, 'Bye Week': get_bye_week}
+
+        def get_player_points(x):
+            return x['player_points']['total']
+        mapper = {'Full Name': get_name_full, 'Initial': get_name_initial,
+                  'Bye Week': get_bye_week, 'Player Points': get_player_points}
         all_data = {}
         for name, row in self.obj.iteritems():
             data = row['roster']['players']['player']
