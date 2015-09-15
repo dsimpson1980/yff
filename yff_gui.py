@@ -26,7 +26,7 @@ class TreeWidget(QtGui.QTreeWidget):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setColumnCount(1)
-        self.setHeaderLabels([])
+        self.setHeaderLabel(None)
         self.header().close()
         self.set_tree(obj)
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -208,9 +208,11 @@ class PandasViewer(QtGui.QMainWindow):
         """
         QtGui.QMainWindow.__init__(self)
         if not obj:
-            obj = load_players('data', dialog=self.enter_token)
+            obj, stat_categories = load_players('data', dialog=self.enter_token)
         if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
             obj = {str(type(obj)): obj}
+        self.stat_categories = stat_categories
+        self.inv_stat_categories = {v: k for k, v in stat_categories.iteritems()}
         self.df = pd.DataFrame()
         self.displayed_df = pd.DataFrame()
         window = QtGui.QWidget()
@@ -265,6 +267,11 @@ class PandasViewer(QtGui.QMainWindow):
             self.roster_mapper.setMapping(action, how)
             action.triggered.connect(self.roster_mapper.map)
             self.roster_menu.addAction(action)
+        for stat_id, name in self.stat_categories.iteritems():
+            action = QtGui.QAction(name, self, checkable=True)
+            self.roster_mapper.setMapping(action, name)
+            action.triggered.connect(self.roster_mapper.map)
+            self.roster_menu.addAction(action)
         self.roster = 'Initial'
         for action in self.roster_menu.actions():
             action.setChecked(action.text() == self.roster)
@@ -301,12 +308,18 @@ class PandasViewer(QtGui.QMainWindow):
 
         def get_player_points(x):
             return x['player_points']['total']
+
+        def get_stat(x):
+            stats = x['player_stats']['stats']['stat']
+            stat = [stat['value'] for stat in stats if stat['stat_id'] == self.inv_stat_categories[self.roster]]
+            stat = 'na' if len(stat) == 0 else stat[0]
+            return stat
         mapper = {'Full Name': get_name_full, 'Initial': get_name_initial,
                   'Bye Week': get_bye_week, 'Player Points': get_player_points}
         all_data = {}
         for name, row in self.obj.iteritems():
             data = row['roster']['players']['player']
-            filtered_data = map(mapper[self.roster], data)
+            filtered_data = map(mapper.get(self.roster, get_stat), data)
             all_data[name] = filtered_data
         idx = map(lambda x: x['selected_position']['position'], data)
         df = pd.DataFrame(all_data, index=idx)

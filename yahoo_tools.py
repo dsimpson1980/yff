@@ -48,6 +48,13 @@ def load_players(keyfile=None, week=1, dialog=False, stats=False):
                   AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
     data = {row['name']: row for row in data_yql.rows}
+    query = """SELECT settings.stat_categories
+                 FROM fantasysports.leagues.settings
+                WHERE league_key='%s'""" % league_key
+    data_yql = y3.execute(query, token=token)
+    stat_categories = data_yql.rows[0]
+    stat_categories = stat_categories['settings']['stat_categories']['stats']['stat']
+    stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
     for team in range(1, 13):
         query = """SELECT name, roster.players.player
                      FROM fantasysports.teams.roster.stats
@@ -58,7 +65,7 @@ def load_players(keyfile=None, week=1, dialog=False, stats=False):
         for n, player in enumerate(data[name]['roster']['players']['player']):
             for k in ['player_stats', 'player_points']:
                 player[k] = data_yql[n]['roster']['players']['player'][k]
-    return data
+    return data, stat_categories
 
 if __name__ == '__main__':
     main()
