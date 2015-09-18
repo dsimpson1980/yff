@@ -1,23 +1,10 @@
+import os
+
 import yql
 from yql.storage import FileTokenStore
-import os
-import yaml
 
+from data.extract import get_consumer_secret, get_league_key
 
-def get_yaml_data(filename='data.yaml', *args):
-    with open(filename, 'r') as f:
-        y = yaml.load(f)
-    return tuple([y[arg] for arg in args]) if len(args) > 1 else y[args[0]]
-
-def get_consumer_secret(filename='data.yaml'):
-    return get_yaml_data(filename, 'consumer', 'secret')
-
-def get_league_number(filename='data.yaml'):
-    return get_yaml_data(filename, 'league_number')
-
-def get_league_key(filename='data.yaml'):
-    data = get_yaml_data(filename, 'league', 'league_number')
-    return '%s.l.%s' % data
 
 def main(keyfile=None):
     load_players(keyfile)
@@ -27,7 +14,7 @@ def load_players(keyfile=None, week=1, dialog=False, stats=False):
     #ToDo Need to add dialog/popup to add initial consumer_key and secret
     #ToDo data file should be encrypted in some manner on the local machine
     if keyfile == None:
-        keyfile = 'data.yaml'
+        keyfile = 'etc/data.yaml'
     consumer_key, consumer_secret = get_consumer_secret(keyfile)
     league_key = get_league_key(keyfile)
 

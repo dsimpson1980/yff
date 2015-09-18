@@ -3,7 +3,8 @@ import cookielib
 import getpass
 from BeautifulSoup import BeautifulSoup
 
-from yahoo_tools import get_league_number
+from data.extract import get_league_number
+
 
 def get_proj_points(x):
     fn = x.find('td', attrs={'class': "Alt Ta-end Nowrap Bdrstart"})
