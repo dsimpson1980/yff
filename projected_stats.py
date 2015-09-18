@@ -1,9 +1,8 @@
 import mechanize
 import cookielib
-import getpass
 from BeautifulSoup import BeautifulSoup
 
-from data.extract import get_league_number
+from data.extract import get_league_number, get_yahoo_username
 
 
 def get_proj_points(x):
@@ -26,6 +25,9 @@ def get_points(br, url):
     return points
 
 def initialise_browser(url):
+    import keyring
+    import getpass
+
     br = mechanize.Browser()
     cj = cookielib.LWPCookieJar()
     br.set_cookiejar(cj)
@@ -38,9 +40,15 @@ def initialise_browser(url):
     br.addheaders = [('User-agent', 'Chrome')]
     br.open(url)
     br.select_form(nr=0)
-    username = raw_input('Yahoo Username: ')
-    password = getpass.getpass()
-    br.form['username'] = username
+    yahoo_username = get_yahoo_username()
+    sys_username = getpass.getuser()
+    service_name = 'yff'
+    password = keyring.get_password(service_name, sys_username)
+    if password is None:
+        password = getpass.getpass(
+            'Password for yahoo user: {s!}'.format(yahoo_username))
+        keyring.set_password(service_name, sys_username, password)
+    br.form['username'] = yahoo_username
     br.form['passwd'] = password
     br.submit()
     return br

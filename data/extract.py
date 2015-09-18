@@ -21,3 +21,6 @@ def get_league_number(filename=default_data):
 def get_league_key(filename=default_data):
     data = get_yaml_data(filename, 'league', 'league_number')
     return '%s.l.%s' % data
+
+def get_yahoo_username(filename=default_data):
+    return get_yaml_data(filename, 'yahoo_username')
