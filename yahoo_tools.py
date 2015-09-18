@@ -4,13 +4,13 @@ import yql
 from yql.storage import FileTokenStore
 
 from data.extract import get_consumer_secret, get_league_key
-
+from projected_stats import get_all_points
 
 def main(keyfile=None):
     load_players(keyfile)
 
 
-def load_players(keyfile=None, week=1, dialog=False, stats=False):
+def load_players(keyfile=None, week=1, dialog=False, get_proj_points=False):
     #ToDo Need to add dialog/popup to add initial consumer_key and secret
     #ToDo data file should be encrypted in some manner on the local machine
     if keyfile == None:
@@ -53,6 +53,8 @@ def load_players(keyfile=None, week=1, dialog=False, stats=False):
     stat_categories = data_yql.rows[0]
     stat_categories = stat_categories['settings']['stat_categories']['stats']['stat']
     stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
+    if get_proj_points:
+        proj_points = get_all_points()
     for team in range(1, 13):
         query = """SELECT name, roster.players.player
                      FROM fantasysports.teams.roster.stats
@@ -63,6 +65,8 @@ def load_players(keyfile=None, week=1, dialog=False, stats=False):
         for n, player in enumerate(data[name]['roster']['players']['player']):
             for k in ['player_stats', 'player_points']:
                 player[k] = data_yql[n]['roster']['players']['player'][k]
+            if get_proj_points:
+                player['proj_points'] = proj_points[team - 1][n]
     return data, stat_categories
 
 if __name__ == '__main__':

@@ -17,17 +17,13 @@ def get_points(br, url):
     br.open(url)
     page = br.response().read()
     soup = BeautifulSoup(page)
-    points = []
     rows = []
-    try:
-        for n in xrange(3):
-            table = soup.find('div', attrs={'id': 'statTable%s-wrap' % n})
-            table = table.find('table')
-            rows += table.findAll('tr')[2:]
-        points.append(map(get_proj_points, rows))
-        return points
-    except:
-        return []
+    for n in xrange(3):
+        table = soup.find('div', attrs={'id': 'statTable%s-wrap' % n})
+        table = table.find('table')
+        rows += table.findAll('tr')[2:]
+    points = map(get_proj_points, rows)
+    return points
 
 def initialise_browser(url):
     br = mechanize.Browser()
@@ -49,7 +45,7 @@ def initialise_browser(url):
     br.submit()
     return br
 
-def main():
+def get_all_points():
     league_num = get_league_number()
     url = 'http://football.fantasysports.yahoo.com/f1/{!s}'.format(league_num)
     url += '/%s?stat1=P&ssort=W'
@@ -57,8 +53,7 @@ def main():
     points = []
     for team_num in xrange(1, 13):
         points.append(get_points(br, url % team_num))
-    for p in points:
-        print p
+    return points
 
 if __name__ == '__main__':
-    main()
+    print get_all_points()

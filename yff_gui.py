@@ -208,7 +208,8 @@ class PandasViewer(QtGui.QMainWindow):
         """
         QtGui.QMainWindow.__init__(self)
         if not obj:
-            obj, stat_categories = load_players(dialog=self.enter_token)
+            obj, stat_categories = load_players(
+                dialog=self.enter_token, get_proj_points=True)
         if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
             obj = {str(type(obj)): obj}
         self.stat_categories = stat_categories
@@ -260,7 +261,8 @@ class PandasViewer(QtGui.QMainWindow):
         menubar.addMenu(self.roster_menu)
         self.roster_mapper = QtCore.QSignalMapper(self)
         for how, key in [('Full Name', 'F'), ('Initial', 'I'),
-                         ('Bye Week', 'B'), ('Player Points', 'P')]:
+                         ('Bye Week', 'B'), ('Player Points', 'P'),
+                         ('Proj Points', 'R')]:
             action = QtGui.QAction(
                 how, self, checkable=True,
                 shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % key))
@@ -309,13 +311,17 @@ class PandasViewer(QtGui.QMainWindow):
         def get_player_points(x):
             return x['player_points']['total']
 
+        def get_proj_points(x):
+            return x['proj_points']
+
         def get_stat(x):
             stats = x['player_stats']['stats']['stat']
             stat = [stat['value'] for stat in stats if stat['stat_id'] == self.inv_stat_categories[self.roster]]
             stat = 'na' if len(stat) == 0 else stat[0]
             return stat
         mapper = {'Full Name': get_name_full, 'Initial': get_name_initial,
-                  'Bye Week': get_bye_week, 'Player Points': get_player_points}
+                  'Bye Week': get_bye_week, 'Player Points': get_player_points,
+                  'Proj Points': get_proj_points}
         all_data = {}
         for name, row in self.obj.iteritems():
             data = row['roster']['players']['player']
