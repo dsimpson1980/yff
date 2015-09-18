@@ -8,6 +8,8 @@ from data.extract import get_league_number
 
 def get_proj_points(x):
     fn = x.find('td', attrs={'class': "Alt Ta-end Nowrap Bdrstart"})
+    if fn is None:
+        fn = x.find('td', attrs={'class': "Ta-end Nowrap Bdrstart"})
     fn = fn.find('div').text
     return float(fn)
 
