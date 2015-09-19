@@ -6,7 +6,8 @@ default_data = os.path.expanduser('~/YahooFF/data.yaml')
 def get_yaml_data(filename=default_data, *args):
     with open(filename, 'r') as f:
         y = yaml.load(f)
-    return tuple([y[arg] for arg in args]) if len(args) > 1 else y[args[0]]
+    return tuple([y.get(arg, None)
+                  for arg in args]) if len(args) > 1 else y[args[0]]
 
 
 def get_consumer_secret(filename=default_data):
