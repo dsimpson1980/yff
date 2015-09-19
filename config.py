@@ -58,6 +58,9 @@ def get_league(query=None):
 def get_league_number(query=None):
     return get_general_one_parameter(query, 'Fantasy', 'league_number')
 
+def get_league_key():
+    return '%s.l.%s' % (get_league(), get_league_number())
+
 def get_general_one_parameter(query, section, key):
     value = config_map(section, key)
     if value == '':

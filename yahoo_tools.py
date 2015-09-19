@@ -3,15 +3,14 @@ import os
 import yql
 from yql.storage import FileTokenStore
 
-from data.extract import get_consumer_secret, get_league_key
+import config
 from projected_stats import get_all_points
 
-def load_players(keyfile=None, week=1, dialog=False, get_proj_points=False):
+def load_players(week=1, dialog=False, get_proj_points=False):
     #ToDo Need to add dialog/popup to add initial consumer_key and secret
     #ToDo data file should be encrypted in some manner on the local machine
-    args = [] if keyfile is None else [keyfile]
-    consumer_key, consumer_secret = get_consumer_secret(*args)
-    league_key = get_league_key(*args)
+    consumer_key, consumer_secret = config.get_consumer_secret()
+    league_key = config.get_league_key()
 
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     _cache_dir = os.path.expanduser('~/YahooFF')
