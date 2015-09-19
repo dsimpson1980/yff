@@ -1,8 +1,7 @@
 import yaml
+import os
 
-__author__ = 'davidsimpson'
-
-default_data = 'etc/data.yaml'
+default_data = os.path.expanduser('~/YahooFF/data.yaml')
 
 def get_yaml_data(filename=default_data, *args):
     with open(filename, 'r') as f:
