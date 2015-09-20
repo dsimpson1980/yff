@@ -300,9 +300,14 @@ class PandasViewer(QtGui.QMainWindow):
         self.week_mapper.mapped['QString'].connect(self.change_week_menu)
 
     def change_week_menu(self, week_name):
-        self.week = week_name.split(' ')[1]
         for action in self.week_menu.actions():
             action.setChecked(action.text() == week_name)
+        week = week_name.split(' ')[1]
+        if week != self.week:
+            self.week = week
+            #ToDo This needs to be sped up or run in the background in pieces
+            self.obj, _ = load_players(week=self.week,
+                dialog=self.enter_token, get_proj_points=True)
         if self.df is not None:
             self.change_stat()
 
