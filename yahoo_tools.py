@@ -10,10 +10,19 @@ start_date = datetime.datetime(2015, 9, 10)
 week_dates = [(start_date + relativedelta(weeks=x)).date() for x in range(16)]
 print week_dates
 def get_week(date=None):
-    """
+    """Get the week for the 2015 nfl season that date lies within.  If date is
+    before or after the 16 week season None is returned
 
-    :param date:
-    :return:
+    Parameters
+    ----------
+    date: datetime.date
+        The date to test for the nfl week
+
+    Returns
+    -------
+    int, None
+        The week number or None if the date is not in the 2015 nfl season
+
     >>> get_week(datetime.date(2015, 9, 15))
     1
     >>> get_week(datetime.date(2015, 9, 17))
