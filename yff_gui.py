@@ -237,7 +237,7 @@ class PandasViewer(QtGui.QMainWindow):
         self.df_viewer = DataFrameTableView(None)
         left_layout.addWidget(self.df_viewer)
         self.init_menu()
-        self.load_players()
+        self.change_stat()
 
     def dataframe_changed(self, df):
         """Set the dataframe in the dataframe viewer to df
@@ -258,7 +258,7 @@ class PandasViewer(QtGui.QMainWindow):
         self.menubar.addMenu(action_menu)
         self.refresh = QtGui.QAction(
             'Refresh', action_menu, shortcut=QtGui.QKeySequence.Refresh)
-        self.refresh.triggered.connect(self.load_players)
+        self.refresh.triggered.connect(self.change_stat)
         action_menu.addAction(self.refresh)
         self.setup_roster_menu()
         self.setup_week_menu()
@@ -304,7 +304,7 @@ class PandasViewer(QtGui.QMainWindow):
         for action in self.week_menu.actions():
             action.setChecked(action.text() == week_name)
         if self.df is not None:
-            self.load_players()
+            self.change_stat()
 
     def change_roster_menu(self, how):
         self.roster = how
@@ -312,7 +312,7 @@ class PandasViewer(QtGui.QMainWindow):
             action.setChecked(action.text() == how)
         if self.df is not None:
             # self.dataframe_changed(self.df)
-            self.load_players()
+            self.change_stat()
 
     @staticmethod
     def action(*args, **kwargs):
@@ -322,7 +322,7 @@ class PandasViewer(QtGui.QMainWindow):
             action.triggered.connect(event)
         return action
 
-    def load_players(self):
+    def change_stat(self):
         def get_name_initial(x):
             if x['name']['last'] == None:
                 return x['name']['first']
