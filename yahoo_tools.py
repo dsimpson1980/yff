@@ -8,7 +8,7 @@ from projected_stats import get_all_points
 
 start_date = datetime.datetime(2015, 9, 10)
 week_dates = [(start_date + relativedelta(weeks=x)).date() for x in range(16)]
-print week_dates
+
 def get_week(date=None):
     """Get the week for the 2015 nfl season that date lies within.  If date is
     before or after the 16 week season None is returned
