@@ -207,8 +207,11 @@ class PandasViewer(QtGui.QMainWindow):
         <viewer_gui.PandasViewer object at ...>
         """
         QtGui.QMainWindow.__init__(self)
+        self.week = get_week()
+        if self.week is None:
+            self.week = 1
         if not obj:
-            obj, stat_categories = load_players(
+            obj, stat_categories = load_players(week=self.week,
                 dialog=self.enter_token, get_proj_points=True)
         if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
             obj = {str(type(obj)): obj}
@@ -292,9 +295,6 @@ class PandasViewer(QtGui.QMainWindow):
             self.week_mapper.setMapping(action, 'Week %s' % week)
             action.triggered.connect(self.week_mapper.map)
             self.week_menu.addAction(action)
-        self.week = get_week()
-        if self.week is None:
-            self.week = 1
         for action in self.week_menu.actions():
             action.setChecked(action.text() == 'Week %s' % self.week)
         self.week_mapper.mapped['QString'].connect(self.change_week_menu)
