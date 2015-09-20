@@ -250,15 +250,19 @@ class PandasViewer(QtGui.QMainWindow):
 
     def init_menu(self):
         """Initiate the drop down menus for the window"""
-        menubar = QtGui.QMenuBar(self)
+        self.menubar = QtGui.QMenuBar(self)
         action_menu = QtGui.QMenu('Actions')
-        menubar.addMenu(action_menu)
+        self.menubar.addMenu(action_menu)
         self.refresh = QtGui.QAction(
             'Refresh', action_menu, shortcut=QtGui.QKeySequence.Refresh)
         self.refresh.triggered.connect(self.load_players)
         action_menu.addAction(self.refresh)
+        self.setup_roster_menu()
+        self.setup_week_menu()
+
+    def setup_roster_menu(self):
         self.roster_menu = QtGui.QMenu('Roster')
-        menubar.addMenu(self.roster_menu)
+        self.menubar.addMenu(self.roster_menu)
         self.roster_mapper = QtCore.QSignalMapper(self)
         for how, key in [('Full Name', 'F'), ('Initial', 'I'),
                          ('Bye Week', 'B'), ('Player Points', 'P'),
@@ -278,6 +282,28 @@ class PandasViewer(QtGui.QMainWindow):
         for action in self.roster_menu.actions():
             action.setChecked(action.text() == self.roster)
         self.roster_mapper.mapped['QString'].connect(self.change_roster_menu)
+
+    def setup_week_menu(self):
+        self.week_menu = QtGui.QMenu('Week')
+        self.menubar.addMenu(self.week_menu)
+        self.week_mapper = QtCore.QSignalMapper(self)
+        for week in range(1, 17):
+            action = QtGui.QAction('Week %s' % week, self, checkable=True)
+            self.week_mapper.setMapping(action, 'Week %s' % week)
+            action.triggered.connect(self.week_mapper.map)
+            self.week_menu.addAction(action)
+        #ToDo set this to the existing week
+        self.week = 1
+        for action in self.week_menu.actions():
+            action.setChecked(action.text() == 'Week %s' % self.week)
+        self.week_mapper.mapped['QString'].connect(self.change_week_menu)
+
+    def change_week_menu(self, week_name):
+        self.week = week_name.split(' ')[1]
+        for action in self.week_menu.actions():
+            action.setChecked(action.text() == week_name)
+        if self.df is not None:
+            self.load_players()
 
     def change_roster_menu(self, how):
         self.roster = how
