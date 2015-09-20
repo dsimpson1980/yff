@@ -8,14 +8,27 @@ from projected_stats import get_all_points
 
 start_date = datetime.datetime(2015, 9, 10)
 week_dates = [(start_date + relativedelta(weeks=x)).date() for x in range(16)]
-
+print week_dates
 def get_week(date=None):
+    """
+
+    :param date:
+    :return:
+    >>> get_week(datetime.date(2015, 9, 15))
+    1
+    >>> get_week(datetime.date(2015, 9, 17))
+    2
+    >>> get_week(datetime.date(2015, 12, 30))
+    16
+    >>> get_week(datetime.date(2016, 1, 10))
+
+    """
     if date is None:
         date = datetime.datetime.now().date()
-    last_start = date + relativedelta(weekday=TH, weeks=-1)
+    last_start = date + relativedelta(weekday=TH(-1))
     try:
         week_num = week_dates.index(last_start) + 1
-    except IndexError:
+    except ValueError:
         week_num = None
     return week_num
 
