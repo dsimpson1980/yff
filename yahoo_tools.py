@@ -1,10 +1,23 @@
 import os
-
 import yql
 from yql.storage import FileTokenStore
-
+import datetime
+from dateutil.relativedelta import relativedelta, TH
 import config
 from projected_stats import get_all_points
+
+start_date = datetime.datetime(2015, 9, 10)
+week_dates = [(start_date + relativedelta(weeks=x)).date() for x in range(16)]
+
+def get_week(date=None):
+    if date is None:
+        date = datetime.datetime.now().date()
+    last_start = date + relativedelta(weekday=TH, weeks=-1)
+    try:
+        week_num = week_dates.index(last_start) + 1
+    except IndexError:
+        week_num = None
+    return week_num
 
 def load_players(week=1, dialog=False, get_proj_points=False):
     #ToDo Need to add dialog/popup to add initial consumer_key and secret
@@ -40,13 +53,8 @@ def load_players(week=1, dialog=False, get_proj_points=False):
                   AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
     data = {row['name']: row for row in data_yql.rows}
-    query = """SELECT settings.stat_categories
-                 FROM fantasysports.leagues.settings
-                WHERE league_key='%s'""" % league_key
-    data_yql = y3.execute(query, token=token)
-    stat_categories = data_yql.rows[0]
-    stat_categories = stat_categories['settings']['stat_categories']['stats']['stat']
-    stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
+    stat_categories = get_stat_categories(y3, league_key, token)
+    game_weeks = get_game_weeks(y3, league_key, token)
     if get_proj_points:
         proj_points = get_all_points()
     for team in range(1, 13):
@@ -62,3 +70,23 @@ def load_players(week=1, dialog=False, get_proj_points=False):
             if get_proj_points:
                 player['proj_points'] = proj_points[team - 1][n]
     return data, stat_categories
+
+def get_stat_categories(y3, league_key, token):
+    query = """SELECT settings.stat_categories
+                 FROM fantasysports.leagues.settings
+                WHERE league_key='%s'""" % league_key
+    data_yql = y3.execute(query, token=token)
+    stat_categories = data_yql.rows[0]
+    stat_categories = stat_categories['settings']['stat_categories']['stats']['stat']
+    stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
+    return stat_categories
+
+def get_game_weeks(y3, league_key, token):
+    query = """SELECT settings.game_weeks
+                 FROM fantasysports.leagues.settings
+                WHERE league_key='%s'""" % league_key
+    data_yql = y3.execute(query, token=token)
+    game_weeks = data_yql.rows[0]
+    game_weeks = game_weeks['settings']['game_weeks']['stats']['stat']
+    game_weeks = {x['stat_id']: x['name'] for x in game_weeks}
+    return game_weeks

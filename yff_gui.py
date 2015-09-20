@@ -2,7 +2,7 @@ from PySide import QtGui, QtCore
 import sys
 import pandas as pd
 
-from yahoo_tools import load_players
+from yahoo_tools import load_players, get_week
 import webbrowser
 
 
@@ -292,8 +292,9 @@ class PandasViewer(QtGui.QMainWindow):
             self.week_mapper.setMapping(action, 'Week %s' % week)
             action.triggered.connect(self.week_mapper.map)
             self.week_menu.addAction(action)
-        #ToDo set this to the existing week
-        self.week = 1
+        self.week = get_week()
+        if self.week is None:
+            self.week = 1
         for action in self.week_menu.actions():
             action.setChecked(action.text() == 'Week %s' % self.week)
         self.week_mapper.mapped['QString'].connect(self.change_week_menu)
