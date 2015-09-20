@@ -54,7 +54,6 @@ def load_players(week=1, dialog=False, get_proj_points=False):
     data_yql = y3.execute(query, token=token)
     data = {row['name']: row for row in data_yql.rows}
     stat_categories = get_stat_categories(y3, league_key, token)
-    game_weeks = get_game_weeks(y3, league_key, token)
     if get_proj_points:
         proj_points = get_all_points()
     for team in range(1, 13):
@@ -80,13 +79,3 @@ def get_stat_categories(y3, league_key, token):
     stat_categories = stat_categories['settings']['stat_categories']['stats']['stat']
     stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
     return stat_categories
-
-def get_game_weeks(y3, league_key, token):
-    query = """SELECT settings.game_weeks
-                 FROM fantasysports.leagues.settings
-                WHERE league_key='%s'""" % league_key
-    data_yql = y3.execute(query, token=token)
-    game_weeks = data_yql.rows[0]
-    game_weeks = game_weeks['settings']['game_weeks']['stats']['stat']
-    game_weeks = {x['stat_id']: x['name'] for x in game_weeks}
-    return game_weeks
