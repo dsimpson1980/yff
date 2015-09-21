@@ -1,9 +1,11 @@
 import os
+import datetime
+
 import yql
 from yql.storage import FileTokenStore
-import datetime
 from dateutil.relativedelta import relativedelta, TH
-import config
+
+from data import config
 from projected_stats import get_all_points
 
 start_date = datetime.datetime(2015, 9, 10)

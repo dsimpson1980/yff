@@ -2,7 +2,7 @@ import mechanize
 import cookielib
 from BeautifulSoup import BeautifulSoup
 
-from data.extract import get_league_number, get_yahoo_username
+from data.config import get_league_number, get_yahoo_username
 
 
 def get_proj_points(x):

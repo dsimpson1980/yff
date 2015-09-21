@@ -50,6 +50,11 @@ def get_consumer_secret(query=None):
     return consumer, secret
 
 def get_yahoo_username(query=None):
+    """
+
+    :param query:
+    :return:
+    """
     return get_general_one_parameter(query, 'Yahoo', 'username')
 
 def get_league(query=None):
