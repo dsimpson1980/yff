@@ -44,12 +44,15 @@ def get_week(date=None):
     return week_num
 
 def load_players(week=1, dialog=False, get_proj_points=False):
-    #ToDo Need to add dialog/popup to add initial consumer_key and secret
-    #ToDo data file should be encrypted in some manner on the local machine
     consumer_key, consumer_secret = config.get_consumer_secret()
     league_key = config.get_league_key()
-
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
+    token = get_token(y3, dialog)
+    stat_categories = get_stat_categories(y3, token, league_key)
+    player_stats = get_player_stats(y3, token, league_key, week, get_proj_points)
+    return player_stats, stat_categories
+
+def get_token(y3, dialog=False):
     _cache_dir = os.path.expanduser('~/YahooFF')
     if not os.access(_cache_dir, os.R_OK):
         os.mkdir(_cache_dir)
@@ -68,9 +71,7 @@ def load_players(week=1, dialog=False, get_proj_points=False):
         token = y3.check_token(stored_token)
         if token != stored_token:
             token_store.set('foo', token)
-    stat_categories = get_stat_categories(y3, token, league_key)
-    player_stats = get_player_stats(y3, token, league_key, week)
-    return player_stats, stat_categories
+    return token
 
 def get_player_stats(y3, token, league_key, week, get_proj_points=True):
     if get_proj_points:
@@ -94,7 +95,6 @@ def get_player_stats(y3, token, league_key, week, get_proj_points=True):
             if get_proj_points:
                 player['proj_points'] = proj_points[team - 1][n]
     return data
-
 
 def get_stat_categories(y3, token, league_key):
     query = """SELECT settings.stat_categories
