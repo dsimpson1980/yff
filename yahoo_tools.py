@@ -56,7 +56,6 @@ def load_players(week=1, dialog=False, get_proj_points=False):
     token_store = FileTokenStore(_cache_dir, secret='sasfasdfdasfdaf')
     stored_token = token_store.get('foo')
     if not stored_token:
-        # Do the dance
         request_token, auth_url = y3.get_token_and_auth_url()
         if dialog:
             verifier = dialog(auth_url)
@@ -66,20 +65,22 @@ def load_players(week=1, dialog=False, get_proj_points=False):
         token = y3.get_access_token(request_token, verifier)
         token_store.set('foo', token)
     else:
-        # Check access_token is within 1hour-old and if not refresh it
-        # and stash it
         token = y3.check_token(stored_token)
         if token != stored_token:
             token_store.set('foo', token)
+    stat_categories = get_stat_categories(y3, token, league_key)
+    player_stats = get_player_stats(y3, token, league_key, week)
+    return player_stats, stat_categories
+
+def get_player_stats(y3, token, league_key, week, get_proj_points=True):
+    if get_proj_points:
+        proj_points = get_all_points()
     query = """SELECT *
                  FROM fantasysports.teams.roster
                 WHERE league_key='%s'
                   AND week=%s""" % (league_key, week)
     data_yql = y3.execute(query, token=token)
     data = {row['name']: row for row in data_yql.rows}
-    stat_categories = get_stat_categories(y3, league_key, token)
-    if get_proj_points:
-        proj_points = get_all_points()
     for team in range(1, 13):
         query = """SELECT name, roster.players.player
                      FROM fantasysports.teams.roster.stats
@@ -92,9 +93,10 @@ def load_players(week=1, dialog=False, get_proj_points=False):
                 player[k] = data_yql[n]['roster']['players']['player'][k]
             if get_proj_points:
                 player['proj_points'] = proj_points[team - 1][n]
-    return data, stat_categories
+    return data
 
-def get_stat_categories(y3, league_key, token):
+
+def get_stat_categories(y3, token, league_key):
     query = """SELECT settings.stat_categories
                  FROM fantasysports.leagues.settings
                 WHERE league_key='%s'""" % league_key
