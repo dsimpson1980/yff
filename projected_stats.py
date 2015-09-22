@@ -63,5 +63,20 @@ def get_all_points():
         points.append(get_points(br, url % team_num))
     return points
 
+def get_all_proj_points(br, league_num):
+    url = 'http://football.fantasysports.yahoo.com/f1/%s' % league_num
+    url += '/players?&sort=PTS&sdir=1&status=ALL&pos=O&stat1=S_PW_2&jsenabled=1'
+    rows = []
+    for x in range(0, 150, 50):
+        br.open(url + '&count=%s' % x)
+        page = br.response().read()
+        soup = BeautifulSoup(page)
+        table = soup.find('table', attrs={'class': "Table Ta-start Fz-xs Table-mid Table-px-sm Table-interactive"})
+        rows = table.findAll
+        print x
+
 if __name__ == '__main__':
-    print get_all_points()
+    league_num = get_league_number()
+    url = 'http://football.fantasysports.yahoo.com/f1/%s' % league_num
+    br = initialise_browser(url)
+    get_all_proj_points(br, league_num)

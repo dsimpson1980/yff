@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta, TH
 
 from data import config
 from projected_stats import get_all_points
-
+from player import Player, Team
 start_date = datetime.datetime(2015, 9, 10)
 week_dates = [(start_date + relativedelta(weeks=x)).date() for x in range(16)]
 
@@ -49,7 +49,7 @@ def load_players(week=1, dialog=False, get_proj_points=False):
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     token = get_token(y3, dialog)
     stat_categories = get_stat_categories(y3, token, league_key)
-    player_stats = get_player_stats(y3, token, league_key, week, get_proj_points)
+    player_stats = get_player_stats_by_roster(y3, token, league_key, week, get_proj_points)
     return player_stats, stat_categories
 
 def get_token(y3, dialog=False):
@@ -73,7 +73,7 @@ def get_token(y3, dialog=False):
             token_store.set('foo', token)
     return token
 
-def get_player_stats(y3, token, league_key, week, get_proj_points=True):
+def get_player_stats_by_roster(y3, token, league_key, week, get_proj_points=True):
     if get_proj_points:
         proj_points = get_all_points()
     query = """SELECT *
@@ -96,6 +96,13 @@ def get_player_stats(y3, token, league_key, week, get_proj_points=True):
                 player['proj_points'] = proj_points[team - 1][n]
     return data
 
+def get_teams(y3, token, league_key):
+    query = """SELECT *
+                 FROM fantasysports.teams.roster
+                WHERE league_key='%s'""" % league_key
+    data_yql = y3.execute(query, token=token, output='json')
+    return data_yql.rows
+
 def get_stat_categories(y3, token, league_key):
     query = """SELECT settings.stat_categories
                  FROM fantasysports.leagues.settings
@@ -105,3 +112,26 @@ def get_stat_categories(y3, token, league_key):
     stat_categories = stat_categories['settings']['stat_categories']['stats']['stat']
     stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
     return stat_categories
+
+
+def construct_teams_and_players():
+    consumer_key, consumer_secret = config.get_consumer_secret()
+    league_key = config.get_league_key()
+    y3 = yql.ThreeLegged(consumer_key, consumer_secret)
+    token = get_token(y3)
+    teams_data = get_teams(y3, token, league_key)
+    all_players = {}
+    teams = []
+    for team in teams_data:
+        players = []
+        roster = team.pop('roster')
+        for player in roster['players']['player']:
+            player_id = player['player_id']
+            selected_position = player.pop('selected_position')
+            players.append((player_id, selected_position))
+            all_players[player_id] = Player(**player)
+        teams.append(Team(players, **team))
+    return teams, all_players
+
+if __name__ == '__main__':
+    teams, players = construct_teams_and_players()
