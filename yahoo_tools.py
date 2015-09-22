@@ -7,7 +7,9 @@ from dateutil.relativedelta import relativedelta, TH
 
 from data import config
 from projected_stats import get_all_points
-from player import Player, Team
+from player import Player, Team, df_from_teams
+
+
 start_date = datetime.datetime(2015, 9, 10)
 week_dates = [(start_date + relativedelta(weeks=x)).date() for x in range(16)]
 
@@ -103,6 +105,16 @@ def get_teams(y3, token, league_key):
     data_yql = y3.execute(query, token=token, output='json')
     return data_yql.rows
 
+def get_teams_stats(y3, token, league_key, num_teams=12):
+    data = []
+    for team in range(1, num_teams + 1):
+        query = """SELECT *
+                     FROM fantasysports.teams.roster.stats
+                    WHERE team_key='%s.t.%s'""" % (league_key, team)
+        data_yql = y3.execute(query, token=token, output='json')
+        data.append(data_yql.rows[0])
+    return data
+
 def get_stat_categories(y3, token, league_key):
     query = """SELECT settings.stat_categories
                  FROM fantasysports.leagues.settings
@@ -119,19 +131,18 @@ def construct_teams_and_players():
     league_key = config.get_league_key()
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     token = get_token(y3)
-    teams_data = get_teams(y3, token, league_key)
+    teams_data = get_teams_stats(y3, token, league_key)
     all_players = {}
     teams = []
     for team in teams_data:
         players = []
         roster = team.pop('roster')
         for player in roster['players']['player']:
-            player_id = player['player_id']
-            selected_position = player.pop('selected_position')
-            players.append((player_id, selected_position))
-            all_players[player_id] = Player(**player)
+            player = Player(**player)
+            players.append(player)
         teams.append(Team(players, **team))
     return teams, all_players
 
 if __name__ == '__main__':
     teams, players = construct_teams_and_players()
+    print df_from_teams(teams, 'player_points')
