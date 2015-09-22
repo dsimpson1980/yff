@@ -53,9 +53,13 @@ class Team(object):
     def points(self):
         return sum([player.player_points for player in self.played])
 
-def df_from_teams(teams, attr):
+def df_from_teams(teams, attr, with_initial=True):
     data = {}
+    if with_initial:
+        fn = lambda x: '%s %s' % (x.initial, getattr(x, attr))
+    else:
+        fn = lambda x: getattr(x, attr)
     for team in teams:
-        data[team.name] = [getattr(player, attr) for player in team.players]
+        data[team.name] = map(fn, team.players)
     df = pd.DataFrame(data)
     return df
