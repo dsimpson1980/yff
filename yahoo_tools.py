@@ -46,6 +46,21 @@ def get_week(date=None):
     return week_num
 
 def get_token(y3, dialog=None):
+    """Check if there is a cached token and if so retrieve it else ask the user
+    for a new token using dialog.
+
+    The cached token is stored in ~/YahooFF/
+
+    Parameters
+    ----------
+    y3:
+    dialog:
+
+    Returns
+    -------
+    yql.YahooToken
+        Either the cached token or a newly requested token
+    """
     _cache_dir = os.path.expanduser('~/YahooFF')
     if not os.access(_cache_dir, os.R_OK):
         os.mkdir(_cache_dir)

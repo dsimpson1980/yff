@@ -292,7 +292,7 @@ class PandasViewer(QtGui.QMainWindow):
             self.week = week
             #ToDo This needs to be sped up or run in the background in pieces
             self.obj, _ = load_teams(week=self.week,
-                dialog=self.enter_token, get_proj_points=True, self.y3)
+                dialog=self.enter_token, get_proj_points=True, y3=self.y3)
         if self.df is not None:
             self.change_stat()
 
