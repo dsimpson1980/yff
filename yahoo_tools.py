@@ -92,6 +92,24 @@ def get_teams_stats(y3, token, league_key, num_teams=12):
     return data
 
 def get_stat_categories(y3, token, league_key):
+    """Return the stat_categories for the nfl league, a dict mapping stat_id to
+    stat description
+
+    Parameters
+    ----------
+    y3: yql.ThreeLegged
+        The connection to use for the yql query
+    token: yql.YahooToken
+        The token used to secure the y3 connection
+    league_key: str
+        The league_key to use for the query in the form XXX.l.XXXX
+
+    Returns
+    -------
+    dict
+        The dict mapping stat_id to stat description.  Keys are unicode strings
+        as are values
+    """
     query = """SELECT settings.stat_categories
                  FROM fantasysports.leagues.settings
                 WHERE league_key='%s'""" % league_key
