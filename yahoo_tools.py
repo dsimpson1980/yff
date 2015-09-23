@@ -133,10 +133,11 @@ def load_teams(week=1, dialog=False, get_proj_points=False):
     stat_categories = get_stat_categories(y3, token, league_key)
     teams = construct_teams_and_players(consumer_key, consumer_secret,
                                                league_key)
-    projected_stats = get_all_points()
-    for team in teams:
-        for player in team.players:
-            player.proj_points = projected_stats.get(player.player_id, None)
+    if get_proj_points:
+        projected_stats = get_all_points()
+        for team in teams:
+            for player in team.players:
+                player.proj_points = projected_stats.get(player.player_id, None)
     return teams, stat_categories
 
 
