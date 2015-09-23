@@ -169,6 +169,37 @@ def get_y3():
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     return y3
 
+def get_all_player_points(y3, token, league_key, num_teams=12):
+    """Queries the y3 connection to return a dict of player_id and player_points
+    for use in updating player objects
+
+    Parameters
+    ----------
+    y3: yql.ThreeLegged
+        The yql connection
+    token: yql.YahooToken
+        The token used to secure y3
+    league_key: str
+        The league_key to query in the form XXX.l.XXXX
+    num_teams: int
+        The number of teams in the league.  Defaults to 12
+
+    Returns
+    -------
+    dict
+        The dict of player_id and player_points
+    """
+    player_points = {}
+    for team in range(1, num_teams + 1):
+        query = """SELECT roster.players.player
+                     FROM fantasysports.teams.roster.stats
+                    WHERE team_key='%s.t.%s'""" % (league_key, team)
+        data_yql = y3.execute(query, token=token).rows
+        for player in data_yql:
+            player = player['roster']['players']['player']
+            player_points[player['player_id']] = player['player_points']['total']
+    return player_points
+
 def construct_teams_and_players(y3, token, league_key, week):
     """Construct a list of Team objects from querying y3 using get_team_stats
 
@@ -201,4 +232,3 @@ def construct_teams_and_players(y3, token, league_key, week):
             players.append(player)
         teams.append(Team(players, **team))
     return teams
-
