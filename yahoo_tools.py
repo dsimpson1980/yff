@@ -81,7 +81,7 @@ def get_token(y3, dialog=None):
             token_store.set('foo', token)
     return token
 
-def get_teams_stats(y3, token, league_key, num_teams=12):
+def get_teams_stats(y3, token, league_key, week, num_teams=12):
     data = []
     for team in range(1, num_teams + 1):
         query = """SELECT *
@@ -146,7 +146,7 @@ def load_teams(week=None, dialog=None, get_proj_points=False, y3=None):
         y3 = get_y3()
     token = get_token(y3, dialog)
     stat_categories = get_stat_categories(y3, token, league_key)
-    teams = construct_teams_and_players(y3, league_key, week)
+    teams = construct_teams_and_players(y3, token, league_key, week)
     if get_proj_points:
         projected_stats = get_all_points()
         for team in teams:
@@ -170,9 +170,26 @@ def get_y3():
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     return y3
 
-def construct_teams_and_players(y3, league_key):
-    token = get_token(y3)
-    teams_data = get_teams_stats(y3, token, league_key)
+def construct_teams_and_players(y3, token, league_key, week):
+    """Construct a list of Team objects from querying y3 using get_team_stats
+
+    Parameters
+    ----------
+    y3: yql.ThreeLegged
+        The connection to use to query teams and player data
+    token: yql.YahooToken
+        Tooken to use to secure y3
+    league_key: str
+        The league_key to use in the query in the form XXX.l.XXXX
+    week: int
+        The week to query for player stats
+
+    Returns
+    -------
+    list[Team]
+        The list of Team objects constructed from the query data
+    """
+    teams_data = get_teams_stats(y3, token, league_key, week)
     teams = []
     for team in teams_data:
         players = []
@@ -186,6 +203,3 @@ def construct_teams_and_players(y3, league_key):
         teams.append(Team(players, **team))
     return teams
 
-if __name__ == '__main__':
-    teams = construct_teams_and_players()
-    print df_from_teams(teams, 'player_points')
