@@ -4,7 +4,7 @@ import pandas as pd
 import webbrowser
 import yql
 
-from yahoo_tools import load_players, get_week, load_teams
+from yahoo_tools import get_week, load_teams
 from data import config
 
 
@@ -291,8 +291,8 @@ class PandasViewer(QtGui.QMainWindow):
         if week != self.week:
             self.week = week
             #ToDo This needs to be sped up or run in the background in pieces
-            self.obj, _ = load_players(week=self.week,
-                dialog=self.enter_token, get_proj_points=True)
+            self.obj, _ = load_teams(week=self.week,
+                dialog=self.enter_token, get_proj_points=True, self.y3)
         if self.df is not None:
             self.change_stat()
 

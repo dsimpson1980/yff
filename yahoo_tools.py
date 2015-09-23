@@ -45,15 +45,6 @@ def get_week(date=None):
         week_num = None
     return week_num
 
-def load_players(week=1, dialog=False, get_proj_points=False):
-    consumer_key, consumer_secret = config.get_consumer_secret()
-    league_key = config.get_league_key()
-    y3 = yql.ThreeLegged(consumer_key, consumer_secret)
-    token = get_token(y3, dialog)
-    stat_categories = get_stat_categories(y3, token, league_key)
-    player_stats = get_player_stats_by_roster(y3, token, league_key, week, get_proj_points)
-    return player_stats, stat_categories
-
 def get_token(y3, dialog=False):
     _cache_dir = os.path.expanduser('~/YahooFF')
     if not os.access(_cache_dir, os.R_OK):
