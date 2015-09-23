@@ -81,29 +81,6 @@ def get_token(y3, dialog=None):
             token_store.set('foo', token)
     return token
 
-def get_player_stats_by_roster(y3, token, league_key, week, get_proj_points=True):
-    if get_proj_points:
-        proj_points = get_all_points()
-    query = """SELECT *
-                 FROM fantasysports.teams.roster
-                WHERE league_key='%s'
-                  AND week=%s""" % (league_key, week)
-    data_yql = y3.execute(query, token=token)
-    data = {row['name']: row for row in data_yql.rows}
-    for team in range(1, 13):
-        query = """SELECT name, roster.players.player
-                     FROM fantasysports.teams.roster.stats
-                    WHERE team_key='%s.t.%s'
-                      AND week=%s""" % (league_key, team, week)
-        data_yql = y3.execute(query, token=token).rows
-        name = data_yql[0]['name']
-        for n, player in enumerate(data[name]['roster']['players']['player']):
-            for k in ['player_stats', 'player_points']:
-                player[k] = data_yql[n]['roster']['players']['player'][k]
-            if get_proj_points:
-                player['proj_points'] = proj_points[team - 1][n]
-    return data
-
 def get_teams_stats(y3, token, league_key, num_teams=12):
     data = []
     for team in range(1, num_teams + 1):
