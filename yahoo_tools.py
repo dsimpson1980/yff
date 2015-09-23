@@ -125,10 +125,18 @@ def get_stat_categories(y3, token, league_key):
     stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
     return stat_categories
 
-
-def construct_teams_and_players():
+def load_teams(week=1, dialog=False, get_proj_points=False):
     consumer_key, consumer_secret = config.get_consumer_secret()
     league_key = config.get_league_key()
+    y3 = yql.ThreeLegged(consumer_key, consumer_secret)
+    token = get_token(y3, dialog)
+    stat_categories = get_stat_categories(y3, token, league_key)
+    player_stats = construct_teams_and_players(consumer_key, consumer_secret,
+                                               league_key)
+    return player_stats, stat_categories
+
+
+def construct_teams_and_players(consumer_key, consumer_secret, league_key):
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     token = get_token(y3)
     teams_data = get_teams_stats(y3, token, league_key)
@@ -137,6 +145,9 @@ def construct_teams_and_players():
         players = []
         roster = team.pop('roster')
         for player in roster['players']['player']:
+            player_stats = player.pop('player_stats')
+            player_stats = player_stats['stats']['stat']
+            player['stats'] = {d['stat_id']: d['value'] for d in player_stats}
             player = Player(**player)
             players.append(player)
         teams.append(Team(players, **team))

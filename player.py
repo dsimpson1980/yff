@@ -5,6 +5,7 @@ class Player(object):
     def __init__(self, **kwargs):
         self._name = None
         self._player_points = None
+        self.proj_points = None
         for k, v in kwargs.iteritems():
             setattr(self, '_' + k, v)
         if hasattr(self, '_bye_weeks'):
@@ -13,6 +14,8 @@ class Player(object):
             self.player_points = float(self._player_points['total'])
         if hasattr(self, '_selected_position'):
             self.selected_position = self._selected_position['position']
+        if hasattr(self, '_name'):
+            self.full_name = self._name['full']
 
     @property
     def name(self):
@@ -55,7 +58,7 @@ class Team(object):
 
 def df_from_teams(teams, attr, with_initial=True):
     data = {}
-    if with_initial:
+    if with_initial and attr not in ['initial', 'name']:
         fn = lambda x: '%s %s' % (x.initial, getattr(x, attr))
     else:
         fn = lambda x: getattr(x, attr)

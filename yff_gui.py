@@ -2,7 +2,7 @@ from PySide import QtGui, QtCore
 import sys
 import pandas as pd
 
-from yahoo_tools import load_players, get_week
+from yahoo_tools import load_players, get_week, load_teams
 import webbrowser
 
 
@@ -187,35 +187,12 @@ class PandasViewer(QtGui.QMainWindow):
     """Main window for the GUI"""
 
     def __init__(self, obj=None):
-        """Initiate pandas viewer
-
-        Parameters
-        ----------
-        obj: pd.Series, pd.DataFrame, pd.Panel, dict
-            The obj to iterate through to allow selection
-
-        Returns
-        -------
-        PandasViewer
-
-        Examples
-        --------
-        # >>> timestamps = pd.date_range('1-Apr-14', '30-Apr-14')
-        # >>> dataframe = pd.DataFrame(np.random.rand(len(timestamps), 2), index=timestamps)
-        # >>> app = QtGui.QApplication(sys.argv)
-        # >>> PandasViewer(dataframe) #doctest: +ELLIPSIS
-        <viewer_gui.PandasViewer object at ...>
-        """
         QtGui.QMainWindow.__init__(self)
         self.week = get_week()
         if self.week is None:
             self.week = 1
-        if not obj:
-            obj, stat_categories = load_players(week=self.week,
-                dialog=self.enter_token, get_proj_points=True)
-
-        if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
-            obj = {str(type(obj)): obj}
+        self.obj, stat_categories = load_teams(week=self.week,
+            dialog=self.enter_token, get_proj_points=True)
         self.stat_categories = stat_categories
         self.inv_stat_categories = {v: k for k, v in stat_categories.iteritems()}
         self.df = pd.DataFrame()
@@ -231,8 +208,7 @@ class PandasViewer(QtGui.QMainWindow):
         left_layout = QtGui.QVBoxLayout()
         left_panel.setLayout(left_layout)
         splitter.addWidget(left_panel)
-        self.obj = obj
-        self.tree_widget = TreeWidget(self, obj=obj)
+        self.tree_widget = TreeWidget(self, obj=self.obj)
         self.tree_widget.selection_made.connect(self.dataframe_changed)
         left_layout.addWidget(self.tree_widget)
         self.df_viewer = DataFrameTableView(None)
@@ -268,13 +244,17 @@ class PandasViewer(QtGui.QMainWindow):
         self.roster_menu = QtGui.QMenu('Roster')
         self.menubar.addMenu(self.roster_menu)
         self.roster_mapper = QtCore.QSignalMapper(self)
-        for how, key in [('Full Name', 'F'), ('Initial', 'I'),
-                         ('Bye Week', 'B'), ('Player Points', 'P'),
-                         ('Proj Points', 'R')]:
+        self.player_mapper = {}
+        data = [('Full Name', 'F', 'full_name'), ('Initial', 'I', 'initial'),
+                ('Bye Week', 'B', 'bye_week'),
+                ('Player Points', 'P', 'player_points'),
+                ('Proj Points', 'R', 'proj_points')]
+        for stat, shortcut, attr in data:
+            self.player_mapper[stat] = attr
             action = QtGui.QAction(
-                how, self, checkable=True,
-                shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % key))
-            self.roster_mapper.setMapping(action, how)
+                stat, self, checkable=True,
+                shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % shortcut))
+            self.roster_mapper.setMapping(action, stat)
             action.triggered.connect(self.roster_mapper.map)
             self.roster_menu.addAction(action)
         for stat_id, name in self.stat_categories.iteritems():
@@ -329,39 +309,8 @@ class PandasViewer(QtGui.QMainWindow):
         return action
 
     def change_stat(self):
-        def get_name_initial(x):
-            if x['name']['last'] == None:
-                return x['name']['first']
-            else:
-                return x['name']['first'][0] + '.' + x['name']['last']
-
-        def get_name_full(x):
-            return x['name']['full']
-
-        def get_bye_week(x):
-            return x['bye_weeks']['week']
-
-        def get_player_points(x):
-            return x['player_points']['total']
-
-        def get_proj_points(x):
-            return x['proj_points']
-
-        def get_stat(x):
-            stats = x['player_stats']['stats']['stat']
-            stat = [stat['value'] for stat in stats if stat['stat_id'] == self.inv_stat_categories[self.roster]]
-            stat = 'na' if len(stat) == 0 else stat[0]
-            return stat
-        mapper = {'Full Name': get_name_full, 'Initial': get_name_initial,
-                  'Bye Week': get_bye_week, 'Player Points': get_player_points,
-                  'Proj Points': get_proj_points}
-        all_data = {}
-        for name, row in self.obj.iteritems():
-            data = row['roster']['players']['player']
-            filtered_data = map(mapper.get(self.roster, get_stat), data)
-            all_data[name] = filtered_data
-        idx = map(lambda x: x['selected_position']['position'], data)
-        df = pd.DataFrame(all_data, index=idx)
+        import player
+        df = player.df_from_teams(self.obj, self.player_mapper[self.roster])
         self.dataframe_changed(df)
 
     def reset_all(self):
