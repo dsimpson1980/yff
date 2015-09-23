@@ -7,10 +7,15 @@ from data.config import get_league_number, get_yahoo_username
 
 def get_proj_points(x):
     fn = x.find('td', attrs={'class': "Alt Ta-end Nowrap Bdrstart"})
+    id = x.find('a', attrs={'data-ys-playernote-view': 'notes'})
     if fn is None:
         fn = x.find('td', attrs={'class': "Ta-end Nowrap Bdrstart"})
-    fn = fn.find('div').text
-    return float(fn)
+    fn = float(fn.find('div').text)
+    try:
+        id = id.attrMap['data-ys-playerid']
+    except:
+        print 'test'
+    return id, fn
 
 def get_points(br, url):
     br.open(url)
@@ -58,25 +63,16 @@ def get_all_points():
     url = 'http://football.fantasysports.yahoo.com/f1/{!s}'.format(league_num)
     url += '/%s?stat1=P&ssort=W'
     br = initialise_browser(url % 1)
-    points = []
+    all_points = {}
     for team_num in xrange(1, 13):
-        points.append(get_points(br, url % team_num))
-    return points
-
-def get_all_proj_points(br, league_num):
-    url = 'http://football.fantasysports.yahoo.com/f1/%s' % league_num
-    url += '/players?&sort=PTS&sdir=1&status=ALL&pos=O&stat1=S_PW_2&jsenabled=1'
-    rows = []
-    for x in range(0, 150, 50):
-        br.open(url + '&count=%s' % x)
-        page = br.response().read()
-        soup = BeautifulSoup(page)
-        table = soup.find('table', attrs={'class': "Table Ta-start Fz-xs Table-mid Table-px-sm Table-interactive"})
-        rows = table.findAll
-        print x
+        points = get_points(br, url % team_num)
+        for k, v in points:
+            all_points[k] = v
+    return all_points
 
 if __name__ == '__main__':
     league_num = get_league_number()
     url = 'http://football.fantasysports.yahoo.com/f1/%s' % league_num
     br = initialise_browser(url)
-    get_all_proj_points(br, league_num)
+    points = get_all_points()
+    print points

@@ -6,6 +6,7 @@ class Player(object):
         self._name = None
         self._player_points = None
         self.proj_points = None
+        self._player_id = None
         for k, v in kwargs.iteritems():
             setattr(self, '_' + k, v)
         if hasattr(self, '_bye_weeks'):
@@ -20,6 +21,10 @@ class Player(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def player_id(self):
+        return self._player_id
 
     @property
     def initial(self):
