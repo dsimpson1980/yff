@@ -1,9 +1,11 @@
 from PySide import QtGui, QtCore
 import sys
 import pandas as pd
+import webbrowser
+import yql
 
 from yahoo_tools import load_players, get_week, load_teams
-import webbrowser
+from data import config
 
 
 class EnterCode(QtGui.QWidget):
@@ -191,8 +193,10 @@ class PandasViewer(QtGui.QMainWindow):
         self.week = get_week()
         if self.week is None:
             self.week = 1
+        consumer_key, consumer_secret = config.get_consumer_secret()
+        self.y3 = yql.ThreeLegged(consumer_key, consumer_secret)
         self.obj, stat_categories = load_teams(week=self.week,
-            dialog=self.enter_token, get_proj_points=True)
+            dialog=self.enter_token, get_proj_points=True, y3=self.y3)
         self.stat_categories = stat_categories
         self.inv_stat_categories = {v: k for k, v in stat_categories.iteritems()}
         self.df = pd.DataFrame()
