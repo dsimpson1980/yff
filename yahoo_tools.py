@@ -98,13 +98,6 @@ def get_player_stats_by_roster(y3, token, league_key, week, get_proj_points=True
                 player['proj_points'] = proj_points[team - 1][n]
     return data
 
-def get_teams(y3, token, league_key):
-    query = """SELECT *
-                 FROM fantasysports.teams.roster
-                WHERE league_key='%s'""" % league_key
-    data_yql = y3.execute(query, token=token, output='json')
-    return data_yql.rows
-
 def get_teams_stats(y3, token, league_key, num_teams=12):
     data = []
     for team in range(1, num_teams + 1):
