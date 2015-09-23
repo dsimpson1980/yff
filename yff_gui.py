@@ -213,6 +213,7 @@ class PandasViewer(QtGui.QMainWindow):
         if not obj:
             obj, stat_categories = load_players(week=self.week,
                 dialog=self.enter_token, get_proj_points=True)
+
         if isinstance(obj, (pd.Series, pd.DataFrame, pd.Panel)):
             obj = {str(type(obj)): obj}
         self.stat_categories = stat_categories

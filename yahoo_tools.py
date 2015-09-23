@@ -132,7 +132,6 @@ def construct_teams_and_players():
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     token = get_token(y3)
     teams_data = get_teams_stats(y3, token, league_key)
-    all_players = {}
     teams = []
     for team in teams_data:
         players = []
@@ -141,8 +140,8 @@ def construct_teams_and_players():
             player = Player(**player)
             players.append(player)
         teams.append(Team(players, **team))
-    return teams, all_players
+    return teams
 
 if __name__ == '__main__':
-    teams, players = construct_teams_and_players()
+    teams = construct_teams_and_players()
     print df_from_teams(teams, 'player_points')
