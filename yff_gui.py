@@ -5,6 +5,7 @@ import webbrowser
 import yql
 
 from yahoo_tools import get_week, load_teams, get_stat_categories, get_token
+from yahoo_tools import get_all_player_points
 from data import config
 
 
@@ -228,7 +229,8 @@ class PandasViewer(QtGui.QMainWindow):
         # self.refresh_timer.start(10000)
 
     def test(self):
-        self.obj = load_teams(y3=self.y3)
+        player_points = get_all_player_points(
+            self.y3, self.token, self.league_key)
 
     def dataframe_changed(self, df):
         """Set the dataframe in the dataframe viewer to df
