@@ -45,7 +45,7 @@ def get_week(date=None):
         week_num = None
     return week_num
 
-def get_token(y3, dialog=False):
+def get_token(y3, dialog=None):
     _cache_dir = os.path.expanduser('~/YahooFF')
     if not os.access(_cache_dir, os.R_OK):
         os.mkdir(_cache_dir)
@@ -53,7 +53,7 @@ def get_token(y3, dialog=False):
     stored_token = token_store.get('foo')
     if not stored_token:
         request_token, auth_url = y3.get_token_and_auth_url()
-        if dialog:
+        if dialog is not None:
             verifier = dialog(auth_url)
         else:
             print "Visit url %s and get a verifier string" % auth_url
@@ -124,6 +124,17 @@ def load_teams(week=1, dialog=False, get_proj_points=False, y3=None):
     return teams, stat_categories
 
 def get_y3():
+    """Return an oauth connection from yql using consumer_key and
+    consumer_secret that is either cached or requested from the user
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    yql.ThreeLegged
+    """
     consumer_key, consumer_secret = config.get_consumer_secret()
     y3 = yql.ThreeLegged(consumer_key, consumer_secret)
     return y3
