@@ -119,13 +119,34 @@ def get_stat_categories(y3, token, league_key):
     stat_categories = {x['stat_id']: x['name'] for x in stat_categories}
     return stat_categories
 
-def load_teams(week=1, dialog=False, get_proj_points=False, y3=None):
+def load_teams(week=None, dialog=None, get_proj_points=False, y3=None):
+    """Queries yql and created a list of Team objects containing a list of
+    player objects
+
+    Parameters
+    ----------
+    week: int
+        The week to query.  Defaults to None
+    dialog: method
+         Method returning a token, defaults to None
+    get_proj_points: bool
+        If set to True calls get_all_points and appends proj_points to all
+        player objects.  Defaults to False
+    y3: yql.ThreeLegged
+        The oauth connection to use for queries.  If None then get_y3() will be
+        called.  Defaults to None
+
+    Returns
+    -------
+    list[team]
+        A list of the team objects that were created by the yql query
+    """
     league_key = config.get_league_key()
     if y3 is None:
         y3 = get_y3()
     token = get_token(y3, dialog)
     stat_categories = get_stat_categories(y3, token, league_key)
-    teams = construct_teams_and_players(y3, league_key)
+    teams = construct_teams_and_players(y3, league_key, week)
     if get_proj_points:
         projected_stats = get_all_points()
         for team in teams:
