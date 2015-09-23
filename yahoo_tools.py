@@ -82,6 +82,28 @@ def get_token(y3, dialog=None):
     return token
 
 def get_teams_stats(y3, token, league_key, week, num_teams=12):
+    """Query the y3 connection and retunr the player stats data as a list of
+    dicts
+
+    Parameters
+    ----------
+    y3: yql.ThreeLegged
+        The connection to use to query teams and player data
+    token: yql.YahooToken
+        Tooken to use to secure y3
+    league_key: str
+        The league_key to use in the query in the form XXX.l.XXXX
+    week: int
+        The week to query for player stats
+    num_teams: int
+        The number of teams in the league.  Defaults to 12.
+
+    Returns
+    -------
+    list
+        the list of the raw data returned from the query in json format/list of
+        dicts
+    """
     data = []
     for team in range(1, num_teams + 1):
         query = """SELECT *
