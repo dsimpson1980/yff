@@ -4,7 +4,7 @@ import pandas as pd
 import webbrowser
 import yql
 
-from yahoo_tools import get_week, load_teams
+from yahoo_tools import get_week, load_teams, get_stat_categories, get_token
 from data import config
 
 
@@ -188,17 +188,21 @@ class DataFrameTableModel(QtCore.QAbstractTableModel):
 class PandasViewer(QtGui.QMainWindow):
     """Main window for the GUI"""
 
-    def __init__(self, obj=None):
+    def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self.week = get_week()
         if self.week is None:
             self.week = 1
         consumer_key, consumer_secret = config.get_consumer_secret()
         self.y3 = yql.ThreeLegged(consumer_key, consumer_secret)
-        self.obj, stat_categories = load_teams(week=self.week,
-            dialog=self.enter_token, get_proj_points=True, y3=self.y3)
-        self.stat_categories = stat_categories
-        self.inv_stat_categories = {v: k for k, v in stat_categories.iteritems()}
+        self.token = get_token(self.y3)
+        self.league_key = config.get_league_key()
+        self.obj = load_teams(
+            week=self.week, dialog=self.enter_token, y3=self.y3)
+        self.stat_categories = get_stat_categories(
+            self.y3, self.token, self.league_key)
+        self.inv_stat_categories = {
+            v: k for k, v in self.stat_categories.iteritems()}
         self.df = pd.DataFrame()
         self.displayed_df = pd.DataFrame()
         window = QtGui.QWidget()
@@ -219,6 +223,12 @@ class PandasViewer(QtGui.QMainWindow):
         left_layout.addWidget(self.df_viewer)
         self.init_menu()
         self.change_stat()
+        self.refresh_timer = QtCore.QTimer()
+        # self.refresh_timer.timeout.connect(self.test)
+        # self.refresh_timer.start(10000)
+
+    def test(self):
+        self.obj = load_teams(y3=self.y3)
 
     def dataframe_changed(self, df):
         """Set the dataframe in the dataframe viewer to df

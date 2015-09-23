@@ -63,7 +63,7 @@ class Team(object):
 
 def df_from_teams(teams, attr, with_initial=True):
     data = {}
-    if with_initial and attr not in ['initial', 'name']:
+    if with_initial and attr not in ['initial', 'full_name']:
         fn = lambda x: '%s %s' % (x.initial, getattr(x, attr))
     else:
         fn = lambda x: getattr(x, attr)

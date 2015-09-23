@@ -145,14 +145,13 @@ def load_teams(week=None, dialog=None, get_proj_points=False, y3=None):
     if y3 is None:
         y3 = get_y3()
     token = get_token(y3, dialog)
-    stat_categories = get_stat_categories(y3, token, league_key)
     teams = construct_teams_and_players(y3, token, league_key, week)
     if get_proj_points:
         projected_stats = get_all_points()
         for team in teams:
             for player in team.players:
                 player.proj_points = projected_stats.get(player.player_id, None)
-    return teams, stat_categories
+    return teams
 
 def get_y3():
     """Return an oauth connection from yql using consumer_key and
