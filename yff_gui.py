@@ -44,19 +44,19 @@ class MonitorWidget(MainWidget):
         self.stat_categories = get_stat_categories(
             self.y3, self.token, self.league_key)
         self.datatable = QtGui.QTableWidget(parent=self)
-        positions = ['QB', 'WR', 'WR', 'RB', 'RB', 'TE', 'W/R/T', 'K', 'DEF']
-        positions += ['BN'] * 6
         self.datatable.setGeometry(0, 0, 1200, 600)
-        self.datatable.setColumnCount(12)
-        self.datatable.setRowCount(15)
-        self.datatable.setVerticalHeaderLabels(positions)
         self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
+        self.datatable.setColumnCount(len(self.teams))
+        self.datatable.setRowCount(len(self.teams[0].players))
         team_names = []
         for col, team in enumerate(self.teams):
             team_names.append(team.name)
             for row, player in enumerate(team.players):
                 self.datatable.setItem(row, col, QtGui.QTableWidgetItem(player.initial))
         self.datatable.setHorizontalHeaderLabels(team_names)
+        positions = ['QB', 'WR', 'WR', 'RB', 'RB', 'TE', 'W/R/T', 'K', 'DEF']
+        positions += ['BN'] * 6
+        self.datatable.setVerticalHeaderLabels(positions)
 
     def enter_token(self, auth_url):
         text = '''<a href='%s'>%s</a> Enter Code:''' % (auth_url, auth_url)
