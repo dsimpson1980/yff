@@ -14,177 +14,42 @@ class EnterCode(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.auth_url = auth_url
 
-class TreeWidgetItem(QtGui.QTreeWidgetItem):
-    def __init__(self, *args):
-        self.keys = args
-        non_none_keys = [k for k in args if k is not None]
-        key = [] if len(non_none_keys) == 0 else [str(non_none_keys[-1])]
-        QtGui.QTreeWidgetItem.__init__(self, key)
+class MainWidget(QtGui.QWidget):
+    def __init__(self):
+        super(MainWidget, self).__init__()
 
+class MonitorGUI(QtGui.QMainWindow):
+    def __init__(self):
+        super(MonitorGUI, self).__init__()
+        consumer_key, consumer_secret = config.get_consumer_secret()
+        self.y3 = yql.ThreeLegged(consumer_key, consumer_secret)
+        self.token = get_token(self.y3)
+        self.league_key = config.get_league_key()
+        self.stat_categories = get_stat_categories(
+            self.y3, self.token, self.league_key)
+        self.setCentralWidget(MyWidget())
 
-class TreeWidget(QtGui.QTreeWidget):
-    selection_made = QtCore.Signal((pd.DataFrame, ))
+class MyWidget(QtGui.QWidget):
+    def __init__(self):
+        super(MyWidget, self).__init__()
+        self.monitor_widget = MonitorWidget()
+        vbox = QtGui.QVBoxLayout()
+        vbox.addWidget(self.monitor_widget)
+        self.setLayout(vbox)
 
-    def __init__(self, parent=None, obj=None):
-        QtGui.QTreeWidget.__init__(self, parent)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setColumnCount(1)
-        self.setHeaderLabel(None)
-        self.header().close()
-        self.set_tree(obj)
-        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-
-    def set_tree(self, obj):
-        self.clear()
-        self.obj = obj
-        root = self.invisibleRootItem()
-        self.create_branch(root, obj)
-
-    def create_branch(self, root, obj):
-        if isinstance(obj, dict):
-            for key, value in obj.iteritems():
-                twig = TreeWidgetItem(key)
-                root.addChild(twig)
-                self.create_branch(twig, value)
-        elif isinstance(obj, list):
-            for n, value in enumerate(obj):
-                twig = TreeWidgetItem(n)
-                root.addChild(twig)
-                self.create_branch(twig, value)
-        else:
-            leaf = TreeWidgetItem(obj)
-            root.addChild(leaf)
-
-    def selectionChanged(self, selected, deselected):
-        pass
-
-
-class DataFrameTableView(QtGui.QTableView):
-
-    def __init__(self, df):
-        """Initiate the TableView with pd.DataFrame df
-
-        Parameters
-        ----------
-        df: pd.DataFrame
-            The DataFrame to display in the TableView
-
-        Returns
-        -------
-        DataFrameTableView
-        """
-        QtGui.QTableView.__init__(self)
-        self.resize(1000, 500)
-        if df is not None:
-            self.set_dataframe(df)
-
-    def set_dataframe(self, df):
-        """Setter for the dataframe property
-
-        Parameters
-        ----------
-
-        df: pd.DataFrame
-            The pd.DataFrame to set the property
-        """
-        table_model = DataFrameTableModel(self, df)
-        self.df = df
-        self.setModel(table_model)
-        self.resizeColumnsToContents()
-
-
-class DataFrameTableModel(QtCore.QAbstractTableModel):
-
-    def __init__(self, parent, df):
-        """Initiate the Table Model from a parent object, that should be a
-        QtGui.QTableView and an initial pd.DataFrame, df
-
-        Parameters
-        ----------
-        parent: QtGui.QTableView
-            The parent object for the the instance
-        df: pd.DataFrame
-            The pd.DataFrame used to initialise the model
-
-        Returns
-        -------
-        DataFrameTableModel
-        """
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        self.df = df
-
-    def rowCount(self, parent):
-        """Returns the length of the DataFrame property of the parent object
-
-        Parameters
-        ----------
-        parent: The parent object used to extract the DataFrame to measure
-
-        Returns
-        -------
-        int
-        """
-        return len(self.df)
-
-    def columnCount(self, parent):
-        """Returns the number of columns in the DataFrame with a plus one for
-        the index column
-
-        Parameters
-        ----------
-        parent: The parent object used to extract the DataFrame to measure
-
-        Returns
-        -------
-        int
-        """
-        return len(self.df.columns) + 1
-
-    def data(self, index, role):
-        """Used to extract the data from the DataFrame for the row and column
-        specified in the index
-
-        Parameters
-        ----------
-        index: QtCore.QModelIndex
-            The index object to use to lookup data in the DataFrame
-        role: int
-
-        Returns
-        -------
-        str
-        """
-        if not index.isValid() or role != QtCore.Qt.DisplayRole:
-            value = None
-        else:
-            col, row = index.column(), index.row()
-            if col == 0:
-                value = self.df.index[row]
-            else:
-                value = str(self.df.iloc[row, col-1])
-        return value
-
-    def headerData(self, idx, orientation, role):
-        """Returns the column name of the dataframe at idx or 'Timestamp' if the
-         idx = 0
-
-        idx: int
-            The integer index of the column header, 0 indicates the index
-        orientation: QtCore.Qt.Orientation
-            Indicates the orientation of the object, either QtCore.Qt.Horizontal
-            or QtCore.Qt.Vertical
-        role: int
-
-        Returns
-        -------
-        str
-        """
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            value = 'Position' if idx == 0 else self.df.columns[idx-1]
-        else:
-            value = None
-        return value
-
+class MonitorWidget(MainWidget):
+    def __init__(self):
+        super(MonitorWidget, self).__init__()
+        self.datatable = QtGui.QTableWidget(parent=self)
+        positions = ['QB', 'WR', 'WR', 'RB', 'RB', 'TE', 'W/R/T', 'K', 'DEF']
+        positions += ['BN'] * 6
+        self.datatable.setGeometry(0, 0, 1200, 600)
+        self.datatable.setColumnCount(12)
+        self.datatable.setRowCount(15)
+        self.datatable.setVerticalHeaderLabels(positions)
+        for row in range(15):
+            for col in range(12):
+                self.datatable.setItem(row, col, QtGui.QTableWidgetItem(str(row * col)))
 
 class PandasViewer(QtGui.QMainWindow):
     """Main window for the GUI"""
@@ -224,7 +89,7 @@ class PandasViewer(QtGui.QMainWindow):
         left_layout.addWidget(self.df_viewer)
         self.init_menu()
         self.change_stat()
-        self.refresh_timer = QtCore.QTimer()
+        # self.refresh_timer = QtCore.QTimer()
         # self.refresh_timer.timeout.connect(self.test)
         # self.refresh_timer.start(10000)
 
@@ -343,7 +208,7 @@ class PandasViewer(QtGui.QMainWindow):
 def main():
     """Main method for the app"""
     app = QtGui.QApplication(sys.argv)
-    pandas_viewer = PandasViewer()
+    pandas_viewer = MonitorGUI()
     pandas_viewer.show()
     app.exec_()
 
