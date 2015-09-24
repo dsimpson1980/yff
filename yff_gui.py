@@ -21,12 +21,6 @@ class MainWidget(QtGui.QWidget):
 class MonitorGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MonitorGUI, self).__init__()
-        consumer_key, consumer_secret = config.get_consumer_secret()
-        self.y3 = yql.ThreeLegged(consumer_key, consumer_secret)
-        self.token = get_token(self.y3)
-        self.league_key = config.get_league_key()
-        self.stat_categories = get_stat_categories(
-            self.y3, self.token, self.league_key)
         self.setCentralWidget(MyWidget())
 
 class MyWidget(QtGui.QWidget):
@@ -40,6 +34,15 @@ class MyWidget(QtGui.QWidget):
 class MonitorWidget(MainWidget):
     def __init__(self):
         super(MonitorWidget, self).__init__()
+        self.week = get_week()
+        if self.week is None:
+            self.week = 1
+        consumer_key, consumer_secret = config.get_consumer_secret()
+        self.y3 = yql.ThreeLegged(consumer_key, consumer_secret)
+        self.token = get_token(self.y3)
+        self.league_key = config.get_league_key()
+        self.stat_categories = get_stat_categories(
+            self.y3, self.token, self.league_key)
         self.datatable = QtGui.QTableWidget(parent=self)
         positions = ['QB', 'WR', 'WR', 'RB', 'RB', 'TE', 'W/R/T', 'K', 'DEF']
         positions += ['BN'] * 6
@@ -47,9 +50,19 @@ class MonitorWidget(MainWidget):
         self.datatable.setColumnCount(12)
         self.datatable.setRowCount(15)
         self.datatable.setVerticalHeaderLabels(positions)
-        for row in range(15):
-            for col in range(12):
-                self.datatable.setItem(row, col, QtGui.QTableWidgetItem(str(row * col)))
+        self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
+        team_names = []
+        for col, team in enumerate(self.teams):
+            team_names.append(team.name)
+            for row, player in enumerate(team.players):
+                self.datatable.setItem(row, col, QtGui.QTableWidgetItem(player.initial))
+        self.datatable.setHorizontalHeaderLabels(team_names)
+
+    def enter_token(self, auth_url):
+        text = '''<a href='%s'>%s</a> Enter Code:''' % (auth_url, auth_url)
+        webbrowser.open(auth_url)
+        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', text)
+        return str(verifier) if ok else None
 
 class PandasViewer(QtGui.QMainWindow):
     """Main window for the GUI"""
@@ -197,12 +210,6 @@ class PandasViewer(QtGui.QMainWindow):
     def reset_all(self):
         self.df = pd.DataFrame()
         self.displayed_df = pd.DataFrame()
-
-    def enter_token(self, auth_url):
-        text = '''<a href='%s'>%s</a> Enter Code:''' % (auth_url, auth_url)
-        webbrowser.open(auth_url)
-        verifier, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', text)
-        return str(verifier) if ok else None
 
 
 def main():
