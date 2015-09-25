@@ -54,7 +54,7 @@ class MonitorWidget(QtGui.QWidget):
         positions += ['BN'] * 6
         self.datatable.setVerticalHeaderLabels(positions)
 
-    def highlightCell(self, row, col, timelimit=5000, color='red'):
+    def highlightCell(self, row, col, timelimit=3000, color='red', value=None):
         """Highlight the cell background in the color specified.  After the
         timelimit the cell background is set to white
 
@@ -66,12 +66,16 @@ class MonitorWidget(QtGui.QWidget):
             The column indexed from 0 for the datatable
         timelimit: int
             The time in milliseconds before the cell background is set to white.
-            Defaults to 5000
+            Defaults to 3000
         color: str
             The color the cell is to be highlighted.  Must be acceptable by
             QtCore.QColor().  Defaults to 'red'.
+        value: str, int
+            If set the text of the cell will be set to value.  Defaults to None.
         """
         cell = self.datatable.item(row, col)
+        if value is not None:
+            cell.setText(value)
         cell.setBackground(QtGui.QColor(color))
         timer = QtCore.QTimer()
         timer.singleShot(timelimit,
