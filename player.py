@@ -12,7 +12,7 @@ class Player(object):
         if hasattr(self, '_bye_weeks'):
             self.bye_week = self._bye_weeks['week']
         if hasattr(self, '_player_points'):
-            self.player_points = self._player_points['total']
+            self._player_points = self._player_points['total']
         if hasattr(self, '_selected_position'):
             self.selected_position = self._selected_position['position']
         if hasattr(self, '_name'):
@@ -24,6 +24,13 @@ class Player(object):
 
     def set_last_name(self, value):
         self._name['last'] = value
+
+    @property
+    def player_points(self):
+        return self._player_points
+
+    def set_player_points(self, value):
+        self._player_points = value
 
     @property
     def player_id(self):

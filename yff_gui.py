@@ -86,10 +86,10 @@ class MonitorGUI(QtGui.QMainWindow):
             self.change_stat()
 
     def change_roster_menu(self, how):
-        self.roster = how
+        self.centralWidget().roster = self.player_mapper[how]
         for action in self.roster_menu.actions():
             action.setChecked(action.text() == how)
-        self.change_stat(self.player_mapper[how])
+        self.change_stat(self.centralWidget().roster)
 
     @staticmethod
     def action(*args, **kwargs):
@@ -118,7 +118,17 @@ class MonitorWidget(QtGui.QWidget):
         self.stat_categories = get_stat_categories(
             self.y3, self.token, self.league_key)
         self.roster = 'initial'
+        self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
+        self.datatable = None
         self.initialise_table()
+
+    def update_player_points(self):
+        player_points = get_all_player_points(self.y3, self.token, self.league_key)
+        for team in self.teams:
+            for player in team.players:
+                player.set_player_points(player_points[player.player_id])
+        if self.roster == 'player_points':
+            self.update_table()
 
     def initialise_table(self, attr='initial'):
         """Initialise the self.datatable object and populate with the default
@@ -131,8 +141,7 @@ class MonitorWidget(QtGui.QWidget):
             to 'initial'
         """
         self.datatable = QtGui.QTableWidget(parent=self)
-        self.datatable.setGeometry(0, 0, 1500, 600)
-        self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
+        self.datatable.setGeometry(0, 0, 1400, 600)
         self.datatable.setColumnCount(len(self.teams))
         self.datatable.setRowCount(len(self.teams[0].players))
         team_names = []
