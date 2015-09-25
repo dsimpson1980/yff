@@ -22,6 +22,9 @@ class Player(object):
     def name(self):
         return self._name
 
+    def set_last_name(self, value):
+        self._name['last'] = value
+
     @property
     def player_id(self):
         return self._player_id

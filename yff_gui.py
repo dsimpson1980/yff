@@ -39,6 +39,19 @@ class MonitorWidget(QtGui.QWidget):
         self.league_key = config.get_league_key()
         self.stat_categories = get_stat_categories(
             self.y3, self.token, self.league_key)
+        self.roster = 'initial'
+        self.initialise_table()
+
+    def initialise_table(self, attr='initial'):
+        """Initialise the self.datatable object and populate with the default
+        attribute attr from each player
+
+        Parameters
+        ----------
+        attr: str
+            The attr to use for the initial population of the table.  Defaults
+            to 'initial'
+        """
         self.datatable = QtGui.QTableWidget(parent=self)
         self.datatable.setGeometry(0, 0, 1200, 600)
         self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
@@ -48,11 +61,24 @@ class MonitorWidget(QtGui.QWidget):
         for col, team in enumerate(self.teams):
             team_names.append(team.name)
             for row, player in enumerate(team.players):
-                self.datatable.setItem(row, col, QtGui.QTableWidgetItem(player.initial))
+                self.datatable.setItem(
+                    row, col, QtGui.QTableWidgetItem(getattr(player, attr)))
         self.datatable.setHorizontalHeaderLabels(team_names)
         positions = ['QB', 'WR', 'WR', 'RB', 'RB', 'TE', 'W/R/T', 'K', 'DEF']
         positions += ['BN'] * 6
         self.datatable.setVerticalHeaderLabels(positions)
+
+    def update_table(self):
+        """Check if the any of the values in the datatable have changed in
+        comparison to self.teams and the player attribute set in self.roster.
+        If a cell value has changed then the cell is highlighted for the
+        default amount of time
+        """
+        for col, team in enumerate(self.teams):
+            for row, player in enumerate(team.players):
+                value = getattr(player, self.roster)
+                if self.datatable.item(row, col).text() != value:
+                    self.highlightCell(row, col, value=value)
 
     def highlightCell(self, row, col, timelimit=3000, color='red', value=None):
         """Highlight the cell background in the color specified.  After the
