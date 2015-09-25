@@ -123,6 +123,9 @@ class MonitorWidget(QtGui.QWidget):
         self.initialise_table()
 
     def update_player_points(self):
+        """Fetch the player_points for all players and update the Player objects
+        If player_points is currently be viewed then the table is updated
+        """
         player_points = get_all_player_points(self.y3, self.token, self.league_key)
         for team in self.teams:
             for player in team.players:
