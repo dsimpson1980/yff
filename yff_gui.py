@@ -14,10 +14,6 @@ class EnterCode(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.auth_url = auth_url
 
-class MainWidget(QtGui.QWidget):
-    def __init__(self):
-        super(MainWidget, self).__init__()
-
 class MonitorGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MonitorGUI, self).__init__()
@@ -31,7 +27,7 @@ class MyWidget(QtGui.QWidget):
         vbox.addWidget(self.monitor_widget)
         self.setLayout(vbox)
 
-class MonitorWidget(MainWidget):
+class MonitorWidget(QtGui.QWidget):
     def __init__(self):
         super(MonitorWidget, self).__init__()
         self.week = get_week()
@@ -57,6 +53,29 @@ class MonitorWidget(MainWidget):
         positions = ['QB', 'WR', 'WR', 'RB', 'RB', 'TE', 'W/R/T', 'K', 'DEF']
         positions += ['BN'] * 6
         self.datatable.setVerticalHeaderLabels(positions)
+
+    def highlightCell(self, row, col, timelimit=5000, color='red'):
+        """Highlight the cell background in the color specified.  After the
+        timelimit the cell background is set to white
+
+        Parameters
+        ----------
+        row: int
+            The row indexed from 0 for the datatable
+        col: int
+            The column indexed from 0 for the datatable
+        timelimit: int
+            The time in milliseconds before the cell background is set to white.
+            Defaults to 5000
+        color: str
+            The color the cell is to be highlighted.  Must be acceptable by
+            QtCore.QColor().  Defaults to 'red'.
+        """
+        cell = self.datatable.item(row, col)
+        cell.setBackground(QtGui.QColor(color))
+        timer = QtCore.QTimer()
+        timer.singleShot(timelimit,
+                         lambda: cell.setBackground(QtGui.QColor('white')))
 
     def enter_token(self, auth_url):
         text = '''<a href='%s'>%s</a> Enter Code:''' % (auth_url, auth_url)
