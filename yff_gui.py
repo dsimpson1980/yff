@@ -17,15 +17,93 @@ class EnterCode(QtGui.QWidget):
 class MonitorGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MonitorGUI, self).__init__()
-        self.setCentralWidget(MyWidget())
+        # self.setCentralWidget(MyWidget())
+        self.setCentralWidget(MonitorWidget())
+        self.init_menu()
 
-class MyWidget(QtGui.QWidget):
-    def __init__(self):
-        super(MyWidget, self).__init__()
-        self.monitor_widget = MonitorWidget()
-        vbox = QtGui.QVBoxLayout()
-        vbox.addWidget(self.monitor_widget)
-        self.setLayout(vbox)
+    def init_menu(self):
+        """Initiate the drop down menus for the window"""
+        self.menubar = QtGui.QMenuBar(self)
+        action_menu = QtGui.QMenu('Actions')
+        self.menubar.addMenu(action_menu)
+        self.refresh = QtGui.QAction(
+            'Refresh', action_menu, shortcut=QtGui.QKeySequence.Refresh)
+        # self.refresh.triggered.connect(self.change_stat)
+        action_menu.addAction(self.refresh)
+        self.setup_roster_menu()
+        self.setup_week_menu()
+
+    def setup_roster_menu(self):
+        self.roster_menu = QtGui.QMenu('Roster')
+        self.menubar.addMenu(self.roster_menu)
+        self.roster_mapper = QtCore.QSignalMapper(self)
+        self.player_mapper = {}
+        data = [('Full Name', 'F', 'full_name'), ('Initial', 'I', 'initial'),
+                ('Bye Week', 'B', 'bye_week'),
+                ('Player Points', 'P', 'player_points'),
+                ('Proj Points', 'R', 'proj_points')]
+        for stat, shortcut, attr in data:
+            self.player_mapper[stat] = attr
+            action = QtGui.QAction(
+                stat, self, checkable=True,
+                shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % shortcut))
+            self.roster_mapper.setMapping(action, stat)
+            action.triggered.connect(self.roster_mapper.map)
+            self.roster_menu.addAction(action)
+        for stat_id, name in self.centralWidget().stat_categories.iteritems():
+            action = QtGui.QAction(name, self, checkable=True)
+            self.roster_mapper.setMapping(action, name)
+            action.triggered.connect(self.roster_mapper.map)
+            self.roster_menu.addAction(action)
+        self.roster = 'Initial'
+        for action in self.roster_menu.actions():
+            action.setChecked(action.text() == self.roster)
+        self.roster_mapper.mapped['QString'].connect(self.change_roster_menu)
+
+    def setup_week_menu(self):
+        self.week_menu = QtGui.QMenu('Week')
+        self.menubar.addMenu(self.week_menu)
+        self.week_mapper = QtCore.QSignalMapper(self)
+        for week in range(1, 17):
+            action = QtGui.QAction('Week %s' % week, self, checkable=True)
+            self.week_mapper.setMapping(action, 'Week %s' % week)
+            action.triggered.connect(self.week_mapper.map)
+            self.week_menu.addAction(action)
+        for action in self.week_menu.actions():
+            action.setChecked(action.text() == 'Week %s' % self.centralWidget().week)
+        self.week_mapper.mapped['QString'].connect(self.change_week_menu)
+
+    def change_week_menu(self, week_name):
+        for action in self.week_menu.actions():
+            action.setChecked(action.text() == week_name)
+        week = week_name.split(' ')[1]
+        if week != self.centralWidget().week:
+            self.centralWidget().week = week
+            #ToDo This needs to be sped up or run in the background in pieces
+            self.teams = load_teams(week=week,
+                dialog=self.enter_token, get_proj_points=True, y3=self.y3)
+        if self.df is not None:
+            self.change_stat()
+
+    def change_roster_menu(self, how):
+        self.roster = how
+        for action in self.roster_menu.actions():
+            action.setChecked(action.text() == how)
+        self.change_stat(self.player_mapper[how])
+
+    @staticmethod
+    def action(*args, **kwargs):
+        action = QtGui.QAction(*args, **kwargs)
+        event = kwargs.pop('triggered', None)
+        if event is not None:
+            action.triggered.connect(event)
+        return action
+
+    def change_stat(self, attr):
+        for col, team in enumerate(self.centralWidget().teams):
+            for row, player in enumerate(team.players):
+                self.centralWidget().datatable.item(row, col).setText(
+                    getattr(player, attr))
 
 class MonitorWidget(QtGui.QWidget):
     def __init__(self):
@@ -53,7 +131,7 @@ class MonitorWidget(QtGui.QWidget):
             to 'initial'
         """
         self.datatable = QtGui.QTableWidget(parent=self)
-        self.datatable.setGeometry(0, 0, 1200, 600)
+        self.datatable.setGeometry(0, 0, 1500, 600)
         self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
         self.datatable.setColumnCount(len(self.teams))
         self.datatable.setRowCount(len(self.teams[0].players))
@@ -171,90 +249,7 @@ class PandasViewer(QtGui.QMainWindow):
         self.displayed_df = self.df
         self.df_viewer.set_dataframe(self.displayed_df)
 
-    def init_menu(self):
-        """Initiate the drop down menus for the window"""
-        self.menubar = QtGui.QMenuBar(self)
-        action_menu = QtGui.QMenu('Actions')
-        self.menubar.addMenu(action_menu)
-        self.refresh = QtGui.QAction(
-            'Refresh', action_menu, shortcut=QtGui.QKeySequence.Refresh)
-        self.refresh.triggered.connect(self.change_stat)
-        action_menu.addAction(self.refresh)
-        self.setup_roster_menu()
-        self.setup_week_menu()
 
-    def setup_roster_menu(self):
-        self.roster_menu = QtGui.QMenu('Roster')
-        self.menubar.addMenu(self.roster_menu)
-        self.roster_mapper = QtCore.QSignalMapper(self)
-        self.player_mapper = {}
-        data = [('Full Name', 'F', 'full_name'), ('Initial', 'I', 'initial'),
-                ('Bye Week', 'B', 'bye_week'),
-                ('Player Points', 'P', 'player_points'),
-                ('Proj Points', 'R', 'proj_points')]
-        for stat, shortcut, attr in data:
-            self.player_mapper[stat] = attr
-            action = QtGui.QAction(
-                stat, self, checkable=True,
-                shortcut=QtGui.QKeySequence('Ctrl+Shift+%s' % shortcut))
-            self.roster_mapper.setMapping(action, stat)
-            action.triggered.connect(self.roster_mapper.map)
-            self.roster_menu.addAction(action)
-        for stat_id, name in self.stat_categories.iteritems():
-            action = QtGui.QAction(name, self, checkable=True)
-            self.roster_mapper.setMapping(action, name)
-            action.triggered.connect(self.roster_mapper.map)
-            self.roster_menu.addAction(action)
-        self.roster = 'Initial'
-        for action in self.roster_menu.actions():
-            action.setChecked(action.text() == self.roster)
-        self.roster_mapper.mapped['QString'].connect(self.change_roster_menu)
-
-    def setup_week_menu(self):
-        self.week_menu = QtGui.QMenu('Week')
-        self.menubar.addMenu(self.week_menu)
-        self.week_mapper = QtCore.QSignalMapper(self)
-        for week in range(1, 17):
-            action = QtGui.QAction('Week %s' % week, self, checkable=True)
-            self.week_mapper.setMapping(action, 'Week %s' % week)
-            action.triggered.connect(self.week_mapper.map)
-            self.week_menu.addAction(action)
-        for action in self.week_menu.actions():
-            action.setChecked(action.text() == 'Week %s' % self.week)
-        self.week_mapper.mapped['QString'].connect(self.change_week_menu)
-
-    def change_week_menu(self, week_name):
-        for action in self.week_menu.actions():
-            action.setChecked(action.text() == week_name)
-        week = week_name.split(' ')[1]
-        if week != self.week:
-            self.week = week
-            #ToDo This needs to be sped up or run in the background in pieces
-            self.obj, _ = load_teams(week=self.week,
-                dialog=self.enter_token, get_proj_points=True, y3=self.y3)
-        if self.df is not None:
-            self.change_stat()
-
-    def change_roster_menu(self, how):
-        self.roster = how
-        for action in self.roster_menu.actions():
-            action.setChecked(action.text() == how)
-        if self.df is not None:
-            # self.dataframe_changed(self.df)
-            self.change_stat()
-
-    @staticmethod
-    def action(*args, **kwargs):
-        action = QtGui.QAction(*args, **kwargs)
-        event = kwargs.pop('triggered', None)
-        if event is not None:
-            action.triggered.connect(event)
-        return action
-
-    def change_stat(self):
-        import player
-        df = player.df_from_teams(self.obj, self.player_mapper[self.roster])
-        self.dataframe_changed(df)
 
     def reset_all(self):
         self.df = pd.DataFrame()

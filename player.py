@@ -10,9 +10,9 @@ class Player(object):
         for k, v in kwargs.iteritems():
             setattr(self, '_' + k, v)
         if hasattr(self, '_bye_weeks'):
-            self.bye_week = int(self._bye_weeks['week'])
+            self.bye_week = self._bye_weeks['week']
         if hasattr(self, '_player_points'):
-            self.player_points = float(self._player_points['total'])
+            self.player_points = self._player_points['total']
         if hasattr(self, '_selected_position'):
             self.selected_position = self._selected_position['position']
         if hasattr(self, '_name'):
