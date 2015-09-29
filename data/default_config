@@ -1,0 +1,13 @@
+[Fantasy]
+league =
+league_number =
+
+[Yff]
+consumer =
+secret =
+
+[Yahoo]
+username =
+
+[Parameters]
+refresh_rate = 10000

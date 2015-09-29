@@ -1,21 +1,16 @@
 import ConfigParser
 import os
 import errno
+import shutil
 
 config = ConfigParser.ConfigParser()
 default = os.path.expanduser('~/YahooFF/config')
 
 def set_default_config():
     mkdir_p('~/YahooFF')
-    parameters = dict(Yff=['consumer', 'secret'],
-                      Fantasy=['league', 'league_number'],
-                      Yahoo=['username'])
-    for section, keys in parameters.iteritems():
-        config.add_section(section)
-        for key in keys:
-            config.set(section, key, ' ')
-    with open(default, 'w') as file:
-        config.write(file)
+    src = os.path.join(os.path.dirname(__file__), 'default_config')
+    dst = os.path.expanduser('~/YahooFF/config')
+    shutil.copy(src, dst)
 
 def mkdir_p(path):
     try:
@@ -95,7 +90,6 @@ def get_general_one_parameter(query, section, key):
         value = raw_input('Enter %s:' % key) if query is None else query()
     return value
 
-if os.path.exists(default):
-    config.read(default)
-else:
+if not os.path.exists(default):
     set_default_config()
+config.read(default)
