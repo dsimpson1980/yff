@@ -50,10 +50,18 @@ def get_consumer_secret(query=None):
     return consumer, secret
 
 def get_yahoo_username(query=None):
-    """
+    """Get the yahoo username from the config file
 
-    :param query:
-    :return:
+    Parameters
+    ----------
+    query: function
+        A function returning the parameter if it does not exist in the config
+        file
+
+    Returns
+    -------
+    str
+        The yahoo_username to use to login for scraping projected points
     """
     return get_general_one_parameter(query, 'Yahoo', 'username')
 
