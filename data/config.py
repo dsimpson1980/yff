@@ -57,6 +57,21 @@ def get_yahoo_username(query=None):
     """
     return get_general_one_parameter(query, 'Yahoo', 'username')
 
+def get_gui_parameter(query=None):
+    """Fetch a parameter associated with the gui e.g. refresh_rate
+
+    Parameters
+    ----------
+    query: function
+        A function that returns the value for the parameter if it doesn't exist
+
+    Returns
+    -------
+    int
+        The refresh rate for loading player_points in milliseconds
+    """
+    return int(get_general_one_parameter(query, 'Parameters', 'refresh_rate'))
+
 def get_league(query=None):
     return get_general_one_parameter(query, 'Fantasy', 'league')
 

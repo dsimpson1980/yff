@@ -119,7 +119,7 @@ class MonitorWidget(QtGui.QWidget):
         self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
         self.datatable = None
         self.initialise_table()
-        self.refresh_rate = 10000
+        self.refresh_rate = config.get_gui_parameter('refresh_rate')
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_player_points)
         self.timer.start(self.refresh_rate)
