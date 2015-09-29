@@ -16,7 +16,6 @@ class EnterCode(QtGui.QWidget):
 class MonitorGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MonitorGUI, self).__init__()
-        # self.setCentralWidget(MyWidget())
         self.setCentralWidget(MonitorWidget())
         self.init_menu()
 
@@ -122,7 +121,7 @@ class MonitorWidget(QtGui.QWidget):
         self.initialise_table()
         self.refresh_rate = 10000
         self.timer = QtCore.QTimer()
-        self.timer.connect(self.update_player_points())
+        self.timer.timeout.connect(self.update_player_points)
         self.timer.start(self.refresh_rate)
 
     def update_player_points(self):
