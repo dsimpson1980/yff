@@ -1,6 +1,5 @@
 from PySide import QtGui, QtCore
 import sys
-import pandas as pd
 import webbrowser
 import yql
 
@@ -121,6 +120,10 @@ class MonitorWidget(QtGui.QWidget):
         self.teams = load_teams(self.week, self.enter_token, y3=self.y3)
         self.datatable = None
         self.initialise_table()
+        self.refresh_rate = 10000
+        self.timer = QtCore.QTimer()
+        self.timer.connect(self.update_player_points())
+        self.timer.start(self.refresh_rate)
 
     def update_player_points(self):
         """Fetch the player_points for all players and update the Player objects
