@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta, TH
 
 from data import config
 from projected_stats import get_all_points
-from player import Player, Team, df_from_teams
+from player import Player, Team
 
 
 start_date = datetime.datetime(2015, 9, 10)
@@ -221,6 +221,52 @@ def get_all_player_points(y3, token, league_key, num_teams=12):
             player = player['roster']['players']['player']
             player_points[player['player_id']] = player['player_points']['total']
     return player_points
+
+def get_matchup_points(y3, token, league_key):
+    """Extract points and projected points from each of the matchups in
+     fantasysports.leagues.scoreboard
+
+    Parameters
+    ----------
+    y3: yql.ThreeLegged
+        The active connection for yql queries
+    token: yql.YahooToken
+        The token used for the y3 connection
+    league_key: str
+        The league key in the form XXX.l.XXXX
+
+    Returns
+    -------
+    list(list(dict))
+        A list with length the number of matchups in the league = num_teams /2
+        Each sublist is the first and second team.  Each dict is the team name,
+        points, and projected_points
+    """
+    query = """SELECT *
+                 FROM fantasysports.leagues.scoreboard
+                WHERE league_key = '%s'""" % league_key
+    data_yql = y3.execute(query, token=token).rows[0]
+    matchups = data_yql['scoreboard']['matchups']['matchup']
+
+    def extract_matchup(team):
+        """Extract dict consisting of team name, points and projected points
+
+        Parameters
+        ----------
+        team: dict
+            The team dict extracted from matchup in yahoo
+
+        Returns
+        -------
+        dict:
+            dict of name, points, and projected_points
+        """
+        result = dict(name=team['name'])
+        result['points'] = team['team_points']['total']
+        result['projected_points'] = team['team_projected_points']['total']
+        return result
+    matchups = [[extract_matchup(t) for t in m['teams']['team']] for m in matchups]
+    return matchups
 
 def construct_teams_and_players(y3, token, league_key, week):
     """Construct a list of Team objects from querying y3 using get_team_stats
